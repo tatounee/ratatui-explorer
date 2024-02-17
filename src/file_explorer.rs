@@ -4,7 +4,7 @@ use ratatui::widgets::WidgetRef;
 
 use crate::{input::Input, widget::Renderer, Theme};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FileExplorer {
     pwd: PathBuf,
     files: Vec<File>,
@@ -12,7 +12,7 @@ pub struct FileExplorer {
     theme: Theme,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct File {
     name: String,
     path: PathBuf,
@@ -35,6 +35,7 @@ impl FileExplorer {
         Ok(file_explorer)
     }
 
+    #[inline]
     pub fn with_theme(theme: Theme) -> Result<FileExplorer> {
         let mut file_explorer = Self::new()?;
 
@@ -44,31 +45,7 @@ impl FileExplorer {
     }
 
     #[inline]
-    pub const fn files(&self) -> &Vec<File> {
-        &self.files
-    }
-
-    #[inline]
-    pub const fn pwd(&self) -> &PathBuf {
-        &self.pwd
-    }
-
-    #[inline]
-    pub fn current(&self) -> &File {
-        &self.files[self.selected]
-    }
-
-    #[inline]
-    pub const fn selected(&self) -> usize {
-        self.selected
-    }
-
-    #[inline]
-    pub const fn theme(&self) -> &Theme {
-        &self.theme
-    }
-
-    pub fn widget(&self) -> impl WidgetRef + '_ {
+    pub const fn widget(&self) -> impl WidgetRef + '_ {
         Renderer(self)
     }
 
@@ -110,6 +87,45 @@ impl FileExplorer {
         }
 
         Ok(())
+    }
+
+    #[inline]
+    pub fn set_pwd<P: Into<PathBuf>>(&mut self, pwd: P) -> Result<()> {
+        self.pwd = pwd.into();
+        self.get_and_set_files()?;
+        self.selected = 0;
+
+        Ok(())
+    }
+
+    #[inline]
+    pub fn set_theme(&mut self, theme: Theme) {
+        self.theme = theme;
+    }
+
+    #[inline]
+    pub fn current(&self) -> &File {
+        &self.files[self.selected]
+    }
+
+    #[inline]
+    pub const fn pwd(&self) -> &PathBuf {
+        &self.pwd
+    }
+
+    #[inline]
+    pub const fn files(&self) -> &Vec<File> {
+        &self.files
+    }
+
+    #[inline]
+    pub const fn selected_idx(&self) -> usize {
+        self.selected
+    }
+
+    #[inline]
+    pub const fn theme(&self) -> &Theme {
+        &self.theme
     }
 
     fn get_and_set_files(&mut self) -> Result<()> {
