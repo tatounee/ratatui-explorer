@@ -98,7 +98,7 @@ fn main() -> io::Result<()> {
 ## Customizing the theme
 You can customize the theme of the file explorer widget by using the `Theme` struct.
 ```rust
-use ratatui::{prelude::*, widget::*};
+use ratatui::{prelude::*, widgets::*};
 use ratatui_explorer::Theme;
 
 let theme = Theme::default()

@@ -190,6 +190,7 @@ impl Theme {
     ///
     /// # Example
     /// ```no_run
+    /// # use ratatui_explorer::Theme;
     /// let theme = Theme::new();
     /// ```
     pub const fn new() -> Self {
@@ -229,6 +230,7 @@ impl Theme {
     /// ```
     /// With this code:
     /// ```no_run
+    /// use ratatui::widgets::*;
     /// use ratatui_explorer::{FileExplorer, Theme};
     ///
     /// let theme = Theme::default()
@@ -259,6 +261,8 @@ impl Theme {
     ///
     /// # Example
     /// ```no_run
+    /// # use ratatui::widgets::*;
+    /// # use ratatui_explorer::Theme;
     /// let theme = Theme::default().with_block(Block::default().borders(Borders::ALL));
     /// ```
     #[inline]
@@ -274,6 +278,8 @@ impl Theme {
     ///
     /// # Example
     /// ```no_run
+    /// # use ratatui::prelude::*;
+    /// # use ratatui_explorer::Theme;
     /// let theme = Theme::default().with_style(Style::default().fg(Color::Yellow));
     /// ```
     #[inline]
@@ -289,6 +295,8 @@ impl Theme {
     ///
     /// # Example
     /// ```no_run
+    /// # use ratatui::prelude::*;
+    /// # use ratatui_explorer::Theme;
     /// let theme = Theme::default().with_item_style(Style::default().fg(Color::White));
     /// ```
     #[inline]
@@ -304,6 +312,8 @@ impl Theme {
     ///
     /// # Example
     /// ```no_run
+    /// # use ratatui::prelude::*;
+    /// # use ratatui_explorer::Theme;
     /// let theme = Theme::default().with_dir_style(Style::default().fg(Color::Blue));
     /// ```
     #[inline]
@@ -319,6 +329,8 @@ impl Theme {
     ///
     /// # Example
     /// ```no_run
+    /// # use ratatui::prelude::*;
+    /// # use ratatui_explorer::Theme;
     /// let theme = Theme::default().with_highlight_item_style(Style::default().add_modifier(Modifier::BOLD));
     /// ```
     #[inline]
@@ -334,6 +346,8 @@ impl Theme {
     ///
     /// # Example
     /// ```no_run
+    /// # use ratatui::prelude::*;
+    /// # use ratatui_explorer::Theme;
     /// let theme = Theme::default().with_highlight_dir_style(Style::default().fg(Color::Blue).add_modifier(Modifier::BOLD));
     /// ```
     #[inline]
@@ -349,6 +363,7 @@ impl Theme {
     ///
     /// # Example
     /// ```no_run
+    /// # use ratatui_explorer::Theme;
     /// let theme = Theme::default().with_highlight_symbol("> ");
     /// ```
     #[inline]
@@ -364,6 +379,8 @@ impl Theme {
     ///
     /// # Example
     /// ```no_run
+    /// # use ratatui::widgets::*;
+    /// # use ratatui_explorer::Theme;
     /// let theme = Theme::default().with_highlight_spacing(HighlightSpacing::Never);
     /// ```
     #[inline]
@@ -384,6 +401,8 @@ impl Theme {
     ///
     /// # Example
     /// ```no_run
+    /// use ratatui::prelude::*;
+    /// # use ratatui_explorer::{FileExplorer, Theme};
     /// let theme = Theme::default()
     ///     .with_title_top(|file_explorer: &FileExplorer| {
     ///         Line::from(format!("cwd - {}", file_explorer.cwd().display()))
@@ -413,6 +432,8 @@ impl Theme {
     ///
     /// # Example
     /// ```no_run
+    /// # use ratatui::prelude::*;
+    /// # use ratatui_explorer::{FileExplorer, Theme};
     /// let theme = Theme::default()
     ///     .with_title_bottom(|file_explorer: &FileExplorer| {
     ///         Line::from(format!("cwd - {}", file_explorer.cwd().display()))
@@ -506,6 +527,7 @@ impl Default for Theme {
     ///
     /// # Example
     /// ```no_run
+    /// # use ratatui_explorer::Theme;
     /// let theme = Theme::default();
     /// ```
     fn default() -> Self {
