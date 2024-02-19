@@ -3,6 +3,9 @@ use crossterm::event::{Event, KeyCode};
 use super::Input;
 
 impl From<&Event> for Input {
+    /// Convert crossterm [`Event`](https://docs.rs/crossterm/latest/crossterm/event/enum.Event.html) to [`Input`].
+    ///
+    /// **Note:** This implementation is only available when the `crossterm` feature is enabled.
     fn from(value: &Event) -> Self {
         if let Event::Key(key) = value {
             if matches!(

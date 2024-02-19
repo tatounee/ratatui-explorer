@@ -18,10 +18,12 @@ termwiz = { version = "0.22", optional = true }
 
 ratatui = { version = "0.26", features = ["unstable-widget-ref"] }
 derivative = "2.2"
-paste = "1.0"
 
 [features]
 default = ["crossterm"]
 crossterm = ["dep:crossterm"]
 termion = ["dep:termion"]
 termwiz = ["dep:termwiz"]
+
+[package.metadata.docs.rs]
+cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
