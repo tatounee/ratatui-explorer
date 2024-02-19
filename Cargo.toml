@@ -6,6 +6,8 @@ authors = ["Tatounee"]
 description = "ratatui-explorer is a small, but highly customizable, file explorer widget for ratatui."
 license = "MIT"
 readme = "README.md"
+homepage = "https://github.com/tatounee/ratatui-explorer"
+repository = "https://github.com/tatounee/ratatui-explorer.git"
 keywords = ["tui", "ratatui", "terminal", "file", "explorer"]
 categories = ["command-line-interface", "filesystem"]
 
