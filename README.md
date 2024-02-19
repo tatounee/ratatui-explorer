@@ -109,3 +109,17 @@ let theme = Theme::default()
     .with_highlight_dir_style(Style::default().fg(Color::Red).add_modifier(Modifier::BOLD))
     .with_highlight_symbol("> ".into());
 ```
+
+# Bindings
+
+The following bindings are used by default for [crossterm](https://docs.rs/crossterm/latest/crossterm/), 
+[termion](https://docs.rs/termion/latest/termion/) and [termwiz](https://docs.rs/termwiz/latest/termwiz/).
+
+| Binding                           | Action                     |
+|-----------------------------------|----------------------------|
+| `j`, `<DownArrow>`                | Move the selection down    |
+| `k`, `<UpArrow>`                  | Move the selection up      |
+| `h`, `<LeftArrow>`, `<Backspace>` | Go to the parent directory |
+| `l`, `<RightArrow>`, `<Enter>`    | Go to the child directory* |
+
+_*if the selected item is a directory_
