@@ -34,7 +34,11 @@ fn main() -> io::Result<()> {
 
             f.render_widget(&file_explorer.widget(), chunks[0]);
             f.render_widget(
-                Paragraph::new(file_content).block(Block::default().borders(Borders::ALL).border_type(BorderType::Double)),
+                Paragraph::new(file_content).block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .border_type(BorderType::Double),
+                ),
                 chunks[1],
             );
         })?;
@@ -69,9 +73,7 @@ fn get_file_content(path: &Path) -> io::Result<String> {
 fn get_theme() -> Theme {
     Theme::default()
         .with_block(
-            Block::default()
-                .borders(Borders::ALL)
-                // .border_type(BorderType::Double),
+            Block::default().borders(Borders::ALL),
         )
         .with_dir_style(
             Style::default()
