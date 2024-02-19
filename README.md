@@ -19,7 +19,7 @@ The simplest use of [ratatui-explorer](https://crates.io/crates/ratatui-explorer
 cargo run --example basic
 ```
 
-![basic usage demonstration](assets/basic.gif)
+![basic usage demonstration](https://raw.githubusercontent.com/tatounee/ratatui-explorer/master/assets/basic.gif)
 
 ---
 
@@ -30,7 +30,7 @@ Switching custom themes while running.
 cargo run --example light_and_dark_theme
 ```
 
-![theme swithing demonstration](assets/light_and_dark_theme.gif)
+![theme swithing demonstration](https://raw.githubusercontent.com/tatounee/ratatui-explorer/master/assets/light_and_dark_theme.gif)
 
 ---
 
@@ -41,7 +41,7 @@ Adapte interface depending to the selected file.
 cargo run --example file_preview
 ```
 
-![file preview demonstration](assets/file_preview.gif)
+![file preview demonstration](https://raw.githubusercontent.com/tatounee/ratatui-explorer/master/assets/file_preview.gif)
 
 
 # Basic usage
