@@ -1,6 +1,6 @@
 [package]
 name = "ratatui-explorer"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Tatounee"]
 description = "ratatui-explorer is a small, but highly customizable, file explorer widget for ratatui."
