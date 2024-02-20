@@ -126,7 +126,7 @@ impl Theme {
     ///     ├── passport.png  <- selected
     ///     └── resume.pdf
     /// ```
-    /// You will endup with something like this:
+    /// You will end up with something like this:
     /// ```plaintext
     /// ┌/Documents────────────────────────┐
     /// │ ../                              │
@@ -426,7 +426,7 @@ impl Theme {
 }
 
 impl Default for Theme {
-    /// Return a slitly customized default theme. To get a theme with no style set, use [Theme::new](#method.new).
+    /// Return a slightly customized default theme. To get a theme with no style set, use [Theme::new](#method.new).
     ///
     /// The theme will have a block with all borders, a white style for the items, a light blue style for the directories,
     /// a dark gray background for all the highlighted items.

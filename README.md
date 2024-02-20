@@ -30,12 +30,12 @@ Switching custom themes while running.
 cargo run --example light_and_dark_theme
 ```
 
-![theme swithing demonstration](https://raw.githubusercontent.com/tatounee/ratatui-explorer/master/assets/light_and_dark_theme.gif)
+![theme switching demonstration](https://raw.githubusercontent.com/tatounee/ratatui-explorer/master/assets/light_and_dark_theme.gif)
 
 ---
 
 ## [File preview](examples/file_preview.rs)
-Adapte interface depending to the selected file.
+Adapt the interface depending on the selected file.
 
 ```shell
 cargo run --example file_preview
