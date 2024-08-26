@@ -128,7 +128,7 @@ impl FileExplorer {
     /// loop {
     ///     terminal.draw(|f| {
     ///         let widget = file_explorer.widget(); // Get the widget to render the file explorer
-    ///         f.render_widget(&widget, f.size());
+    ///         f.render_widget(&widget, f.area());
     ///     }).unwrap();
     ///
     ///     // ...

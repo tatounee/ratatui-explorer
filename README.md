@@ -75,7 +75,7 @@ fn main() -> io::Result<()> {
     loop {
         // Render the file explorer widget.
         terminal.draw(|f| {
-            f.render_widget(&file_explorer.widget(), f.size());
+            f.render_widget(&file_explorer.widget(), f.area());
         })?;
 
         // Read the next event from the terminal.
@@ -112,7 +112,7 @@ let theme = Theme::default()
 
 # Bindings
 
-The following bindings are used by default for [crossterm](https://docs.rs/crossterm/latest/crossterm/), 
+The following bindings are used by default for [crossterm](https://docs.rs/crossterm/latest/crossterm/),
 [termion](https://docs.rs/termion/latest/termion/) and [termwiz](https://docs.rs/termwiz/latest/termwiz/).
 
 | Binding                           | Action                     |

@@ -25,7 +25,7 @@ fn main() -> io::Result<()> {
     loop {
         // Render the file explorer widget.
         terminal.draw(|f| {
-            f.render_widget(&file_explorer.widget(), f.size());
+            f.render_widget(&file_explorer.widget(), f.area());
         })?;
 
         // Read the next event from the terminal.
