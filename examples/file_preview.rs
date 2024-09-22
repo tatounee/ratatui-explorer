@@ -30,7 +30,7 @@ fn main() -> io::Result<()> {
 
         // Render the file explorer widget and the file content.
         terminal.draw(|f| {
-            let chunks = layout.split(f.size());
+            let chunks = layout.split(f.area());
 
             f.render_widget(&file_explorer.widget(), chunks[0]);
             f.render_widget(
