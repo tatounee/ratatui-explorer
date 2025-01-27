@@ -72,13 +72,13 @@ impl File {
 /// You can also wrap the widget in a block with the [Theme::with_block](#method.block)
 /// method and add customizable titles to it with [Theme::with_title_top](#method.title_top)
 /// and [Theme::with_title_bottom](#method.title_bottom).
-#[derive(Clone, derivative::Derivative)]
-#[derivative(Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, educe::Educe)]
+#[educe(Debug, PartialEq, Eq, Hash)]
 pub struct Theme {
     block: Option<Block<'static>>,
-    #[derivative(Debug = "ignore", PartialEq = "ignore", Hash = "ignore")]
+    #[educe(Debug(ignore), PartialEq(ignore), Hash(ignore))]
     title_top: Vec<LineFactory>,
-    #[derivative(Debug = "ignore", PartialEq = "ignore", Hash = "ignore")]
+    #[educe(Debug(ignore), PartialEq(ignore), Hash(ignore))]
     title_bottom: Vec<LineFactory>,
     style: Style,
     item_style: Style,
