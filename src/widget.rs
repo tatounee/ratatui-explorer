@@ -10,7 +10,7 @@ use ratatui::{
 
 use crate::{File, FileExplorer};
 
-type LineFactory = Arc<dyn Fn(&FileExplorer) -> Line<'static>>;
+type LineFactory = Arc<dyn Fn(&FileExplorer) -> Line<'static> + Send + Sync>;
 
 pub struct Renderer<'a>(pub(crate) &'a FileExplorer);
 
@@ -321,7 +321,7 @@ impl Theme {
     #[must_use = "method moves the value of self and returns the modified value"]
     pub fn with_title_top(
         mut self,
-        title_top: impl Fn(&FileExplorer) -> Line<'static> + 'static,
+        title_top: impl Fn(&FileExplorer) -> Line<'static> + 'static + Send + Sync,
     ) -> Self {
         self.title_top.push(Arc::new(title_top));
         self
@@ -352,7 +352,7 @@ impl Theme {
     #[must_use = "method moves the value of self and returns the modified value"]
     pub fn with_title_bottom(
         mut self,
-        title_bottom: impl Fn(&FileExplorer) -> Line<'static> + 'static,
+        title_bottom: impl Fn(&FileExplorer) -> Line<'static> + 'static + Send + Sync,
     ) -> Self {
         self.title_bottom.push(Arc::new(title_bottom));
         self
