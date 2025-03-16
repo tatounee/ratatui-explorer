@@ -26,7 +26,12 @@ fn main() -> io::Result<()> {
 
     loop {
         // Get the content of the current selected file (if it's indeed a file).
-        let file_content = get_file_content(file_explorer.current().path())?;
+        let file_content = get_file_content(file_explorer.current().path());
+
+        let file_content: String = match file_content {
+            Ok(file_content) => file_content,
+            _ => String::from("Couldn't load file."),
+        };
 
         // Render the file explorer widget and the file content.
         terminal.draw(|f| {
@@ -60,21 +65,19 @@ fn main() -> io::Result<()> {
 }
 
 fn get_file_content(path: &Path) -> io::Result<String> {
-    let mut content = String::new();
+    let mut content = Ok(String::new());
 
     // If the path is a file, read its content.
     if path.is_file() {
-        content = read_to_string(path)?;
+        content = read_to_string(path)
     }
 
-    Ok(content)
+    content
 }
 
 fn get_theme() -> Theme {
     Theme::default()
-        .with_block(
-            Block::default().borders(Borders::ALL),
-        )
+        .with_block(Block::default().borders(Borders::ALL))
         .with_dir_style(
             Style::default()
                 .fg(Color::White)
