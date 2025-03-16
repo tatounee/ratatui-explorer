@@ -38,6 +38,7 @@ fn main() -> io::Result<()> {
             let chunks = layout.split(f.area());
 
             f.render_widget(&file_explorer.widget(), chunks[0]);
+            f.render_widget(Clear, chunks[1]);
             f.render_widget(
                 Paragraph::new(file_content).block(
                     Block::default()
