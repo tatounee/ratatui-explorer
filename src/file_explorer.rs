@@ -77,6 +77,10 @@ impl FileExplorer {
     /// let file_explorer = FileExplorer::new().unwrap();
     /// assert_eq!(file_explorer.cwd().display().to_string(), "/Documents");
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if the current working directory can not be listed.
     pub fn new() -> Result<FileExplorer> {
         let cwd = std::env::current_dir()?;
 
@@ -95,6 +99,10 @@ impl FileExplorer {
     /// Creates a new instance of `FileExplorer` with a specific theme.
     ///
     /// This method initializes a `FileExplorer` with the current working directory.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if the current working directory can not be listed.
     ///
     /// # Examples
     ///
@@ -152,6 +160,10 @@ impl FileExplorer {
     /// for `Event` of [crossterm](https://docs.rs/crossterm/latest/crossterm/event/enum.Event.html),
     /// [termion](https://docs.rs/termion/latest/termion/event/enum.Event.html)
     /// and [termwiz](https://docs.rs/termwiz/latest/termwiz/input/enum.InputEvent.html) (`InputEvent` in this case).
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if the new current working directory can not be listed.
     ///
     /// # Examples
     ///
@@ -225,6 +237,10 @@ impl FileExplorer {
     }
 
     /// Sets the current working directory of the file explorer.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if the directory `cwd` can not be listed.
     ///
     /// # Examples
     ///
