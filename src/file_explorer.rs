@@ -604,7 +604,7 @@ impl File {
     /// /* User select `Documents` */
     ///
     /// let file = file_explorer.current();
-    /// assert_eq!(file.is_dir(), false);
+    /// assert_eq!(file.is_dir(), true);
     /// ```
     #[inline]
     #[must_use]
