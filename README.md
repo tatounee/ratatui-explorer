@@ -50,7 +50,7 @@ Install the libraries in your `Cargo.toml` file:
 cargo add ratatui ratatui-explorer crossterm
 ```
 Then inside your `main.rs` file:
-```rust
+```rust no_run
 use std::io::{self, stdout};
 
 use crossterm::{
