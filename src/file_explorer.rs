@@ -151,7 +151,7 @@ impl FileExplorer {
     /// [Input](crate::input::Input) implement [`From<Event>`](https://doc.rust-lang.org/stable/std/convert/trait.From.html)
     /// for `Event` of [crossterm](https://docs.rs/crossterm/latest/crossterm/event/enum.Event.html),
     /// [termion](https://docs.rs/termion/latest/termion/event/enum.Event.html)
-    /// and [termwiz](https://docs.rs/termwiz/latest/termwiz/input/enum.InputEvent.html) (InputEvent in this case).
+    /// and [termwiz](https://docs.rs/termwiz/latest/termwiz/input/enum.InputEvent.html) (`InputEvent` in this case).
     ///
     /// # Examples
     ///
