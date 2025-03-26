@@ -30,7 +30,8 @@ impl WidgetRef for Renderer<'_> {
         let mut list = List::new(self.0.files().iter().map(|file| file.text(self.0.theme())))
             .style(self.0.theme().style)
             .highlight_spacing(self.0.theme().highlight_spacing.clone())
-            .highlight_style(highlight_style);
+            .highlight_style(highlight_style)
+            .scroll_padding(self.0.theme().scroll_padding);
 
         if let Some(symbol) = self.0.theme().highlight_symbol.as_deref() {
             list = list.highlight_symbol(symbol);
@@ -87,6 +88,7 @@ pub struct Theme {
     highlight_item_style: Style,
     highlight_dir_style: Style,
     highlight_symbol: Option<String>,
+    scroll_padding: usize,
 }
 
 impl Theme {
@@ -112,6 +114,7 @@ impl Theme {
             highlight_item_style: Style::new(),
             highlight_dir_style: Style::new(),
             highlight_symbol: None,
+            scroll_padding: 0,
         }
     }
 
@@ -297,6 +300,23 @@ impl Theme {
         self
     }
 
+    /// Sets the number of items around the currently selected item that should be kept visible.
+    ///
+    /// /// Behind the scene, it use the [List::scroll_padding](https://docs.rs/ratatui/latest/ratatui/widgets/struct.List.html#method.scroll_padding) method. See its documentation for more.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use ratatui::widgets::*;
+    /// # use ratatui_explorer::Theme;
+    /// let theme = Theme::default().with_scroll_padding(1);
+    /// ```
+    #[inline]
+    #[must_use = "method moves the value of self and returns the modified value"]
+    pub fn with_scroll_padding(mut self, scroll_padding: usize) -> Self {
+        self.scroll_padding = scroll_padding;
+        self
+    }
+
     /// Add a top title factory to the theme.
     ///
     /// `title_top` is a function that take a reference to the current [`FileExplorer`] and returns
@@ -415,6 +435,13 @@ impl Theme {
         &self.highlight_spacing
     }
 
+    /// Returns the number of items around the currently selected item that should be kept visible.
+    #[inline]
+    #[must_use]
+    pub const fn scroll_padding(&self) -> usize {
+        self.scroll_padding
+    }
+
     /// Returns the generated top titles of the theme.
     #[inline]
     #[must_use]
@@ -459,6 +486,7 @@ impl Default for Theme {
             highlight_item_style: Style::default().fg(Color::White).bg(Color::DarkGray),
             highlight_dir_style: Style::default().fg(Color::LightBlue).bg(Color::DarkGray),
             highlight_symbol: None,
+            scroll_padding: 0,
         }
     }
 }

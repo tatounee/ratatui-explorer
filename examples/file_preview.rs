@@ -90,4 +90,5 @@ fn get_theme() -> Theme {
                 .add_modifier(Modifier::BOLD)
                 .bg(Color::DarkGray),
         )
+        .with_scroll_padding(1)
 }
