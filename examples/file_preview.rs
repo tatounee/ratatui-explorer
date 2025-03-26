@@ -1,7 +1,7 @@
 use std::{
+    borrow::Cow,
     fs::read_to_string,
     io::{self, stdout},
-    path::Path,
 };
 
 use crossterm::{
@@ -11,7 +11,7 @@ use crossterm::{
 };
 use ratatui::{prelude::*, widgets::*};
 
-use ratatui_explorer::{FileExplorer, Theme};
+use ratatui_explorer::{File, FileExplorer, Theme};
 
 fn main() -> io::Result<()> {
     enable_raw_mode()?;
@@ -26,11 +26,11 @@ fn main() -> io::Result<()> {
 
     loop {
         // Get the content of the current selected file (if it's indeed a file).
-        let file_content = get_file_content(file_explorer.current().path());
+        let file_content = get_file_content(file_explorer.current());
 
-        let file_content: String = match file_content {
+        let file_content = match file_content {
             Ok(file_content) => file_content,
-            _ => String::from("Couldn't load file."),
+            _ => "Couldn't load file.".into(),
         };
 
         // Render the file explorer widget and the file content.
@@ -65,15 +65,15 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn get_file_content(path: &Path) -> io::Result<String> {
-    let mut content = Ok(String::new());
-
+fn get_file_content(file: &File) -> io::Result<Cow<'_, str>> {
     // If the path is a file, read its content.
-    if path.is_file() {
-        content = read_to_string(path);
+    if file.is_file() {
+        read_to_string(file.path()).map(Into::into)
+    } else if file.is_dir() {
+        Ok("".into())
+    } else {
+        Ok("<not a regular file>".into())
     }
-
-    content
 }
 
 fn get_theme() -> Theme {

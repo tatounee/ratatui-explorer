@@ -1,4 +1,4 @@
-use std::{io::Result, path::PathBuf};
+use std::{fs::FileType, io::Result, path::PathBuf};
 
 use ratatui::widgets::WidgetRef;
 
@@ -473,17 +473,23 @@ impl FileExplorer {
             .filter_map(|entry| {
                 entry.ok().map(|e| {
                     let path = e.path();
-                    let is_dir = path.is_dir();
+                    let file_type = path.metadata().map(|m| m.file_type()).ok();
+                    let is_dir = file_type.is_some_and(|f| f.is_dir());
                     let name = if is_dir {
                         format!("{}/", e.file_name().to_string_lossy())
                     } else {
                         e.file_name().to_string_lossy().into_owned()
                     };
 
-                    File { name, path, is_dir }
+                    File {
+                        name,
+                        path,
+                        is_dir,
+                        file_type,
+                    }
                 })
             })
-            .partition(|file| file.is_dir);
+            .partition(File::is_dir);
 
         dirs.sort_unstable_by(|f1, f2| f1.name.cmp(&f2.name));
         none_dirs.sort_unstable_by(|f1, f2| f1.name.cmp(&f2.name));
@@ -495,6 +501,7 @@ impl FileExplorer {
                 name: "../".to_owned(),
                 path: parent.to_path_buf(),
                 is_dir: true,
+                file_type: None,
             });
 
             files.extend(dirs);
@@ -520,6 +527,7 @@ pub struct File {
     name: String,
     path: PathBuf,
     is_dir: bool,
+    file_type: Option<FileType>,
 }
 
 impl File {
@@ -610,5 +618,75 @@ impl File {
     #[must_use]
     pub const fn is_dir(&self) -> bool {
         self.is_dir
+    }
+
+    /// Returns `true` is the file is a regular file.
+    ///
+    /// # Examples
+    /// Suppose you have this tree file, with `passport.png` selected inside `file_explorer`:
+    /// ```plaintext
+    /// /
+    /// ├── .git
+    /// └── Documents
+    ///     ├── passport.png  <- selected
+    ///     └── resume.pdf
+    /// ```
+    /// You can know if the selected file is a directory like this:
+    /// ```no_run
+    /// use ratatui_explorer::FileExplorer;
+    ///
+    /// let file_explorer = FileExplorer::new().unwrap();
+    ///
+    /// /* user select `password.png` */
+    ///
+    /// let file = file_explorer.current();
+    /// assert_eq!(file.is_file(), true);
+    ///
+    /// /* User select `Documents` */
+    ///
+    /// let file = file_explorer.current();
+    /// assert_eq!(file.is_file(), false);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn is_file(&self) -> bool {
+        self.file_type.is_some_and(|f| f.is_file())
+    }
+
+    /// Returns the `FileType` of the file, when available.
+    ///
+    /// # Examples
+    /// Suppose you have this tree file, with `passport.png` selected inside `file_explorer`:
+    /// ```plaintext
+    /// /
+    /// ├── .git
+    /// └── Documents
+    ///     ├── passport.png  <- selected
+    ///     └── resume.pdf
+    /// ```
+    /// You can know if the selected file is a directory like this:
+    /// ```no_run
+    /// use std::os::unix::fs::FileTypeExt;
+    ///
+    /// use ratatui_explorer::FileExplorer;
+    ///
+    /// let file_explorer = FileExplorer::new().unwrap();
+    ///
+    /// /* user select `password.png` */
+    ///
+    /// let file = file_explorer.current();
+    /// assert_eq!(file.file_type().unwrap().is_file(), true);
+    /// assert_eq!(file.file_type().unwrap().is_socket(), false);
+    ///
+    /// /* User select `Documents` */
+    ///
+    /// let file = file_explorer.current();
+    /// assert_eq!(file.file_type().unwrap().is_file(), false);
+    /// assert_eq!(file.file_type().unwrap().is_socket(), false);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub const fn file_type(&self) -> Option<FileType> {
+        self.file_type
     }
 }
