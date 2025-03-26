@@ -154,6 +154,10 @@ impl FileExplorer {
     /// - `Down`: Move the selection down.
     /// - `Left`: Move to the parent directory.
     /// - `Right`: Move to the selected directory.
+    /// - `Home`: Select the first entry.
+    /// - `End`: Select the last entry.
+    /// - `PageUp`: Scroll the selection up.
+    /// - `PageDown`: Scroll the selection down.
     /// - `None`: Do nothing.
     ///
     /// [Input](crate::input::Input) implement [`From<Event>`](https://doc.rust-lang.org/stable/std/convert/trait.From.html)
@@ -197,6 +201,8 @@ impl FileExplorer {
     /// assert_eq!(file_explorer.cwd().display().to_string(), "/Documents");
     /// ```
     pub fn handle<I: Into<Input>>(&mut self, input: I) -> Result<()> {
+        const SCROLL_COUNT: usize = 12;
+
         let input = input.into();
 
         match input {
@@ -212,6 +218,26 @@ impl FileExplorer {
                     self.selected = 0;
                 } else {
                     self.selected += 1;
+                }
+            }
+            Input::Home => {
+                self.selected = 0;
+            }
+            Input::End => {
+                self.selected = self.files.len() - 1;
+            }
+            Input::PageUp => {
+                if self.selected < SCROLL_COUNT {
+                    self.selected = 0;
+                } else {
+                    self.selected -= SCROLL_COUNT;
+                }
+            }
+            Input::PageDown => {
+                if self.selected + SCROLL_COUNT >= self.files.len() {
+                    self.selected = self.files.len() - 1;
+                } else {
+                    self.selected += SCROLL_COUNT;
                 }
             }
             Input::Left => {

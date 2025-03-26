@@ -14,6 +14,14 @@ pub enum Input {
     Up,
     /// Move the selection down.
     Down,
+    /// Select the first entry.
+    Home,
+    /// Select the last entry.
+    End,
+    /// Scroll several entries up.
+    PageUp,
+    /// Scroll several entries down.
+    PageDown,
     /// Go to the parent directory.
     Left,
     /// Go to the child directory (if the selected item is a directory).
