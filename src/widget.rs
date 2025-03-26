@@ -61,7 +61,7 @@ impl File {
         } else {
             *theme.item_style()
         };
-        Span::styled(self.name().to_owned(), style).into()
+        Span::styled(self.name(), style).into()
     }
 }
 
