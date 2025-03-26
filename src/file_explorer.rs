@@ -208,14 +208,14 @@ impl FileExplorer {
                 if let Some(parent) = parent {
                     self.cwd = parent.to_path_buf();
                     self.get_and_set_files()?;
-                    self.selected = 0
+                    self.selected = 0;
                 }
             }
             Input::Right => {
                 if self.files[self.selected].path.is_dir() {
                     self.cwd = self.files.swap_remove(self.selected).path;
                     self.get_and_set_files()?;
-                    self.selected = 0
+                    self.selected = 0;
                 }
             }
             Input::None => (),
@@ -484,7 +484,7 @@ impl FileExplorer {
             files.extend(dirs);
             files.extend(none_dirs);
 
-            self.files = files
+            self.files = files;
         } else {
             let mut files = Vec::with_capacity(dirs.len() + none_dirs.len());
 

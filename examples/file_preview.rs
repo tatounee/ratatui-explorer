@@ -70,7 +70,7 @@ fn get_file_content(path: &Path) -> io::Result<String> {
 
     // If the path is a file, read its content.
     if path.is_file() {
-        content = read_to_string(path)
+        content = read_to_string(path);
     }
 
     content

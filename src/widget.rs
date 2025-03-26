@@ -40,16 +40,16 @@ impl WidgetRef for Renderer<'_> {
             let mut block = block.clone();
 
             for title_top in self.0.theme().title_top(self.0) {
-                block = block.title_top(title_top)
+                block = block.title_top(title_top);
             }
             for title_bottom in self.0.theme().title_bottom(self.0) {
-                block = block.title_bottom(title_bottom)
+                block = block.title_bottom(title_bottom);
             }
 
             list = list.block(block);
         }
 
-        ratatui::widgets::StatefulWidgetRef::render_ref(&list, area, buf, &mut state)
+        ratatui::widgets::StatefulWidgetRef::render_ref(&list, area, buf, &mut state);
     }
 }
 
