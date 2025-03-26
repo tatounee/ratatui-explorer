@@ -135,6 +135,7 @@ impl FileExplorer {
     /// }
     /// ```
     #[inline]
+    #[must_use]
     pub const fn widget(&self) -> impl WidgetRef + '_ {
         Renderer(self)
     }
@@ -335,6 +336,7 @@ impl FileExplorer {
     /// assert_eq!(file.name(), "passport.png");
     /// ```
     #[inline]
+    #[must_use]
     pub fn current(&self) -> &File {
         &self.files[self.selected]
     }
@@ -363,6 +365,7 @@ impl FileExplorer {
     /// assert_eq!(cwd.display().to_string(), "/Documents");
     /// ```
     #[inline]
+    #[must_use]
     pub const fn cwd(&self) -> &PathBuf {
         &self.cwd
     }
@@ -392,6 +395,7 @@ impl FileExplorer {
     /// assert_eq!(files.len(), 4); // 3 files/directory and the parent directory
     /// ```
     #[inline]
+    #[must_use]
     pub const fn files(&self) -> &Vec<File> {
         &self.files
     }
@@ -424,6 +428,7 @@ impl FileExplorer {
     /// assert_eq!(selected_idx, 2);
     /// ```
     #[inline]
+    #[must_use]
     pub const fn selected_idx(&self) -> usize {
         self.selected
     }
@@ -440,6 +445,7 @@ impl FileExplorer {
     /// assert_eq!(file_explorer.theme(), &Theme::default());
     /// ```
     #[inline]
+    #[must_use]
     pub const fn theme(&self) -> &Theme {
         &self.theme
     }
@@ -524,6 +530,7 @@ impl File {
     /// assert_eq!(file.name(), "passport.png");
     /// ```
     #[inline]
+    #[must_use]
     pub fn name(&self) -> &str {
         &self.name
     }
@@ -551,6 +558,7 @@ impl File {
     /// assert_eq!(file.path().display().to_string(), "/Documents/passport.png");
     /// ```
     #[inline]
+    #[must_use]
     pub const fn path(&self) -> &PathBuf {
         &self.path
     }
@@ -583,6 +591,7 @@ impl File {
     /// assert_eq!(file.is_dir(), false);
     /// ```
     #[inline]
+    #[must_use]
     pub const fn is_dir(&self) -> bool {
         self.is_dir
     }
