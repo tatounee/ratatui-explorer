@@ -99,6 +99,7 @@ impl Theme {
     /// # use ratatui_explorer::Theme;
     /// let theme = Theme::new();
     /// ```
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             block: None,
@@ -360,54 +361,63 @@ impl Theme {
 
     /// Returns the wrapping block (if it exist) of the file explorer of the theme.
     #[inline]
+    #[must_use]
     pub const fn block(&self) -> Option<&Block<'static>> {
         self.block.as_ref()
     }
 
     /// Returns the style of the widget of the theme.
     #[inline]
+    #[must_use]
     pub const fn style(&self) -> &Style {
         &self.style
     }
 
     /// Returns the style of the non directories items of the theme.
     #[inline]
+    #[must_use]
     pub const fn item_style(&self) -> &Style {
         &self.item_style
     }
 
     /// Returns the style of the directories items of the theme.
     #[inline]
+    #[must_use]
     pub const fn dir_style(&self) -> &Style {
         &self.dir_style
     }
 
     /// Returns the style of the highlighted non directories items of the theme.
     #[inline]
+    #[must_use]
     pub const fn highlight_item_style(&self) -> &Style {
         &self.highlight_item_style
     }
 
     /// Returns the style of the highlighted directories items of the theme.
     #[inline]
+    #[must_use]
     pub const fn highlight_dir_style(&self) -> &Style {
         &self.highlight_dir_style
     }
 
     /// Returns the symbol used to highlight the selected item of the theme.
     #[inline]
+    #[must_use]
     pub fn highlight_symbol(&self) -> Option<&str> {
         self.highlight_symbol.as_deref()
     }
 
     /// Returns the spacing between the highlighted item and the other items of the theme.
     #[inline]
+    #[must_use]
     pub const fn highlight_spacing(&self) -> &HighlightSpacing {
         &self.highlight_spacing
     }
 
     /// Returns the generated top titles of the theme.
     #[inline]
+    #[must_use]
     pub fn title_top(&self, file_explorer: &FileExplorer) -> Vec<Line> {
         self.title_top
             .iter()
@@ -417,6 +427,7 @@ impl Theme {
 
     /// Returns the generated bottom titles of the theme.
     #[inline]
+    #[must_use]
     pub fn title_bottom(&self, file_explorer: &FileExplorer) -> Vec<Line> {
         self.title_bottom
             .iter()
