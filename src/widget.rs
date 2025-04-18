@@ -162,9 +162,9 @@ impl Theme {
         })
     }
 
-    /// Wrap the file explorer with a custom [Block](https://docs.rs/ratatui/latest/ratatui/widgets/block/struct.Block.html) widget.
+    /// Wrap the file explorer with a custom [`Block`](https://docs.rs/ratatui/latest/ratatui/widgets/block/struct.Block.html) widget.
     ///
-    /// Behind the scene, it use the [List::block](https://docs.rs/ratatui/latest/ratatui/widgets/struct.List.html#method.block) method. See its documentation for more.
+    /// Behind the scene, it use the [`List::block`](https://docs.rs/ratatui/latest/ratatui/widgets/struct.List.html#method.block) method. See its documentation for more.
     ///
     /// You can use [`Theme::with_title_top`](#method.title_top) and [`Theme::with_title_bottom`](#method.title_bottom)
     /// to add customizable titles to the block.
@@ -184,7 +184,7 @@ impl Theme {
 
     /// Set the style of the widget.
     ///
-    /// Behind the scene, it use the [List::style](https://docs.rs/ratatui/latest/ratatui/widgets/struct.List.html#method.style) method. See its documentation for more.
+    /// Behind the scene, it use the [`List::style`](https://docs.rs/ratatui/latest/ratatui/widgets/struct.List.html#method.style) method. See its documentation for more.
     ///
     /// # Example
     /// ```no_run
@@ -201,7 +201,7 @@ impl Theme {
 
     /// Set the style of all non directories items. To set the style of the directories, use [`Theme::with_dir_style`](#method.dir_style).
     ///
-    /// Behind the scene, it use the [Span::styled](https://docs.rs/ratatui/latest/ratatui/text/struct.Span.html#method.styled) method. See its documentation for more.
+    /// Behind the scene, it use the [`Span::styled`](https://docs.rs/ratatui/latest/ratatui/text/struct.Span.html#method.styled) method. See its documentation for more.
     ///
     /// # Example
     /// ```no_run
@@ -218,7 +218,7 @@ impl Theme {
 
     /// Set the style of all directories items. To set the style of the non directories, use [`Theme::with_item_style`](#method.item_style).
     ///
-    /// Behind the scene, it use the [Span::styled](https://docs.rs/ratatui/latest/ratatui/text/struct.Span.html#method.styled) method. See its documentation for more.
+    /// Behind the scene, it use the [`Span::styled`](https://docs.rs/ratatui/latest/ratatui/text/struct.Span.html#method.styled) method. See its documentation for more.
     ///
     /// # Example
     /// ```no_run
@@ -235,7 +235,7 @@ impl Theme {
 
     /// Set the style of all highlighted non directories items. To set the style of the highlighted directories, use [`Theme::with_highlight_dir_style`](#method.highlight_dir_style).
     ///
-    /// Behind the scene, it use the [List::highlight_style](https://docs.rs/ratatui/latest/ratatui/widgets/struct.List.html#method.highlight_style) method. See its documentation for more.
+    /// Behind the scene, it use the [`List::highlight_style`](https://docs.rs/ratatui/latest/ratatui/widgets/struct.List.html#method.highlight_style) method. See its documentation for more.
     ///
     /// # Example
     /// ```no_run
@@ -252,7 +252,7 @@ impl Theme {
 
     /// Set the style of all highlighted directories items. To set the style of the highlighted non directories, use [`Theme::with_highlight_item_style`](#method.highlight_item_style).
     ///
-    /// Behind the scene, it use the [List::highlight_style](https://docs.rs/ratatui/latest/ratatui/widgets/struct.List.html#method.highlight_style) method. See its documentation for more.
+    /// Behind the scene, it use the [`List::highlight_style`](https://docs.rs/ratatui/latest/ratatui/widgets/struct.List.html#method.highlight_style) method. See its documentation for more.
     ///
     /// # Example
     /// ```no_run
@@ -285,7 +285,7 @@ impl Theme {
 
     /// Set the spacing between the highlighted item and the other items.
     ///
-    /// Behind the scene, it use the [List::highlight_spacing](https://docs.rs/ratatui/latest/ratatui/widgets/struct.List.html#method.highlight_spacing) method. See its documentation for more.
+    /// Behind the scene, it use the [`List::highlight_spacing`](https://docs.rs/ratatui/latest/ratatui/widgets/struct.List.html#method.highlight_spacing) method. See its documentation for more.
     ///
     /// # Example
     /// ```no_run
@@ -324,7 +324,7 @@ impl Theme {
     /// to be displayed as a title at the top of the wrapping block (if it exist) of the file explorer. You can call
     /// this function multiple times to add multiple titles.
     ///
-    /// Behind the scene, it use the [Block::title_top](https://docs.rs/ratatui/latest/ratatui/widgets/block/struct.Block.html#method.title_top) method. See its documentation for more.
+    /// Behind the scene, it use the [`Block::title_top`](https://docs.rs/ratatui/latest/ratatui/widgets/block/struct.Block.html#method.title_top) method. See its documentation for more.
     ///
     /// # Example
     /// ```no_run
@@ -355,7 +355,7 @@ impl Theme {
     /// to be displayed as a title at the bottom of the wrapping block (if it exist) of the file explorer. You can call
     /// this function multiple times to add multiple titles.
     ///
-    /// Behind the scene, it use the [Block::title_bottom](https://docs.rs/ratatui/latest/ratatui/widgets/block/struct.Block.html#method.title_bottom) method. See its documentation for more.
+    /// Behind the scene, it use the [`Block::title_bottom`](https://docs.rs/ratatui/latest/ratatui/widgets/block/struct.Block.html#method.title_bottom) method. See its documentation for more.
     ///
     /// # Example
     /// ```no_run

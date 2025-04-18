@@ -121,5 +121,9 @@ The following bindings are used by default for [crossterm](https://docs.rs/cross
 | `k`, `<UpArrow>`                  | Move the selection up      |
 | `h`, `<LeftArrow>`, `<Backspace>` | Go to the parent directory |
 | `l`, `<RightArrow>`, `<Enter>`    | Go to the child directory* |
+| `Home`                            | Select the first entry     |
+| `End`                             | Select the last entry      |
+| `PageUp`                          | Scroll the selection up    |
+| `PageDown`                        | Scroll the selection down  |
 
 _*if the selected item is a directory_

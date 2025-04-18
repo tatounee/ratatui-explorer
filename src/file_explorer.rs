@@ -8,7 +8,7 @@ use crate::{input::Input, widget::Renderer, Theme};
 ///
 /// The `FileExplorer` struct represents a file explorer widget that can be used to navigate
 /// through the file system.
-/// You can obtain a renderable widget from it with the [widget](#method.widget) method.
+/// You can obtain a renderable widget from it with the [`widget`](#method.widget) method.
 /// It provides methods for handling user input from [crossterm](https://crates.io/crates/crossterm),
 /// [termion](https://crates.io/crates/termion) and [termwiz](https://crates.io/crates/termwiz) (depending on what feature is enabled).
 ///
@@ -61,6 +61,10 @@ impl FileExplorer {
     ///
     /// This method initializes a `FileExplorer` with the current working directory.
     ///
+    /// # Errors
+    ///
+    /// Will return `Err` if the current working directory can not be listed. See [`current_dir`](https://doc.rust-lang.org/stable/std/env/fn.current_dir.html) for more information.
+    ///
     /// # Examples
     /// Suppose you have this tree file and your current working directory is `/Documents`:
     /// ```plaintext
@@ -77,10 +81,6 @@ impl FileExplorer {
     /// let file_explorer = FileExplorer::new().unwrap();
     /// assert_eq!(file_explorer.cwd().display().to_string(), "/Documents");
     /// ```
-    ///
-    /// # Errors
-    ///
-    /// Will return `Err` if the current working directory can not be listed.
     pub fn new() -> Result<FileExplorer> {
         let cwd = std::env::current_dir()?;
 
@@ -121,7 +121,7 @@ impl FileExplorer {
     }
 
     /// Build a ratatui widget to render the file explorer. The widget can then
-    /// be rendered with [Frame::render_widget](https://docs.rs/ratatui/latest/ratatui/terminal/struct.Frame.html#method.render_widget).
+    /// be rendered with [`Frame::render_widget`](https://docs.rs/ratatui/latest/ratatui/terminal/struct.Frame.html#method.render_widget).
     ///
     /// # Examples
     ///
@@ -160,8 +160,8 @@ impl FileExplorer {
     /// - `PageDown`: Scroll the selection down.
     /// - `None`: Do nothing.
     ///
-    /// [Input](crate::input::Input) implement [`From<Event>`](https://doc.rust-lang.org/stable/std/convert/trait.From.html)
-    /// for `Event` of [crossterm](https://docs.rs/crossterm/latest/crossterm/event/enum.Event.html),
+    /// [`Input`](crate::input::Input) implement [`From<Event>`](https://doc.rust-lang.org/stable/std/convert/trait.From.html)
+    /// for `Event` from [crossterm](https://docs.rs/crossterm/latest/crossterm/event/enum.Event.html),
     /// [termion](https://docs.rs/termion/latest/termion/event/enum.Event.html)
     /// and [termwiz](https://docs.rs/termwiz/latest/termwiz/input/enum.InputEvent.html) (`InputEvent` in this case).
     ///
@@ -635,7 +635,7 @@ impl File {
     /// let file = file_explorer.current();
     /// assert_eq!(file.is_dir(), false);
     ///
-    /// /* User select `Documents` */
+    /// /* user select `Documents` */
     ///
     /// let file = file_explorer.current();
     /// assert_eq!(file.is_dir(), true);
@@ -668,7 +668,7 @@ impl File {
     /// let file = file_explorer.current();
     /// assert_eq!(file.is_file(), true);
     ///
-    /// /* User select `Documents` */
+    /// /* user select `Documents` */
     ///
     /// let file = file_explorer.current();
     /// assert_eq!(file.is_file(), false);
@@ -704,7 +704,7 @@ impl File {
     /// assert_eq!(file.file_type().unwrap().is_file(), true);
     /// assert_eq!(file.file_type().unwrap().is_socket(), false);
     ///
-    /// /* User select `Documents` */
+    /// /* user select `Documents` */
     ///
     /// let file = file_explorer.current();
     /// assert_eq!(file.file_type().unwrap().is_file(), false);
