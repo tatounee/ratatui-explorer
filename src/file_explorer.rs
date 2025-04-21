@@ -207,18 +207,10 @@ impl FileExplorer {
 
         match input {
             Input::Up => {
-                if self.selected == 0 {
-                    self.selected = self.files.len() - 1;
-                } else {
-                    self.selected -= 1;
-                }
+                self.selected = self.selected.wrapping_sub(1).min(self.files.len() - 1);
             }
             Input::Down => {
-                if self.selected == self.files.len() - 1 {
-                    self.selected = 0;
-                } else {
-                    self.selected += 1;
-                }
+                self.selected = (self.selected + 1) % self.files.len();
             }
             Input::Home => {
                 self.selected = 0;
@@ -227,18 +219,10 @@ impl FileExplorer {
                 self.selected = self.files.len() - 1;
             }
             Input::PageUp => {
-                if self.selected < SCROLL_COUNT {
-                    self.selected = 0;
-                } else {
-                    self.selected -= SCROLL_COUNT;
-                }
+                self.selected = self.selected.saturating_sub(SCROLL_COUNT);
             }
             Input::PageDown => {
-                if self.selected + SCROLL_COUNT >= self.files.len() {
-                    self.selected = self.files.len() - 1;
-                } else {
-                    self.selected += SCROLL_COUNT;
-                }
+                self.selected = (self.selected + SCROLL_COUNT).min(self.files.len() - 1);
             }
             Input::Left => {
                 let parent = self.cwd.parent();
