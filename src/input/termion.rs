@@ -1,4 +1,5 @@
-use termion::event::{Event, Key};
+use ratatui::termion;
+use ratatui::termion::event::{Event, Key};
 
 use super::Input;
 

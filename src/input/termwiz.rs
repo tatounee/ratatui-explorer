@@ -1,4 +1,5 @@
-use termwiz::{input::InputEvent, input::KeyCode};
+use ratatui::termwiz;
+use ratatui::termwiz::{input::InputEvent, input::KeyCode};
 
 use super::Input;
 

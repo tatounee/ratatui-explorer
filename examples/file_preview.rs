@@ -4,6 +4,7 @@ use std::{
     io::{self, stdout},
 };
 
+use ratatui::crossterm;
 use crossterm::{
     event::{read, Event, KeyCode},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},

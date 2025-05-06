@@ -1,3 +1,4 @@
+use ratatui::crossterm;
 use crossterm::event::{Event, KeyCode};
 
 use super::Input;
