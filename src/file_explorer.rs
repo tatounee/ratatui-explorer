@@ -296,6 +296,8 @@ impl FileExplorer {
     pub fn set_show_hidden(&mut self, show_hidden: bool) -> Result<()> {
         self.show_hidden = show_hidden;
         self.get_and_set_files()?;
+        self.selected = 0;
+
         Ok(())
     }
 
@@ -533,20 +535,33 @@ impl FileExplorer {
             .filter_map(|entry| {
                 let entry = entry.ok()?;
                 let path = entry.path();
-                let file_type = path.metadata().map(|m| m.file_type()).ok()?;
-                let is_dir = file_type.is_dir();
+                let metadata = path.metadata().ok();
+                let file_type = metadata.as_ref().map(|f| f.file_type());
+                let is_dir = file_type.is_some_and(|f| f.is_dir());
 
-                let name = if is_dir {
-                    format!("{}/", entry.file_name().to_string_lossy())
-                } else {
-                    entry.file_name().to_string_lossy().into_owned()
+                let name = entry.file_name().to_string_lossy().into_owned();
+                let name = if is_dir { format!("{}/", name) } else { name };
+
+                let is_hidden = {
+                    #[cfg(unix)]
+                    {
+                        name.starts_with('.')
+                    }
+
+                    #[cfg(windows)]
+                    {
+                        use std::os::windows::fs::MetadataExt;
+                        const FILE_ATTRIBUTE_HIDDEN: u32 = 0x2;
+                        metadata.is_some_and(|f| f.file_attributes() & FILE_ATTRIBUTE_HIDDEN != 0)
+                    }
                 };
 
                 let file = File {
                     name,
                     path,
                     is_dir,
-                    file_type: Some(file_type),
+                    is_hidden,
+                    file_type,
                 };
                 if !self.show_hidden && file.is_hidden() {
                     None
@@ -566,6 +581,7 @@ impl FileExplorer {
                 name: "../".to_owned(),
                 path: parent.to_path_buf(),
                 is_dir: true,
+                is_hidden: false,
                 file_type: None,
             });
 
@@ -592,6 +608,7 @@ pub struct File {
     name: String,
     path: PathBuf,
     is_dir: bool,
+    is_hidden: bool,
     file_type: Option<FileType>,
 }
 
@@ -748,15 +765,7 @@ impl File {
     #[inline]
     #[must_use]
     pub fn is_hidden(&self) -> bool {
-        #[cfg(unix)]
-        {
-            self.name.starts_with(".")
-        }
-        #[cfg(windows)]
-        {
-            const FILE_ATTRIBUTE_HIDDEN: u32 = 0x00000002;
-            file.metadata()?.file_attributes() & FILE_ATTRIBUTE_HIDDEN == 0
-        }
+        self.is_hidden
     }
 
     /// Returns the `FileType` of the file, when available.
