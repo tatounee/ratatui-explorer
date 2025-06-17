@@ -1,5 +1,5 @@
 use ratatui::termwiz;
-use ratatui::termwiz::{input::InputEvent, input::KeyCode};
+use ratatui::termwiz::{input::InputEvent, input::KeyCode, input::Modifiers};
 
 use super::Input;
 
@@ -12,7 +12,15 @@ impl From<&InputEvent> for Input {
             InputEvent::Key(key) => match key.key {
                 KeyCode::Char('j') | KeyCode::DownArrow => Input::Down,
                 KeyCode::Char('k') | KeyCode::UpArrow => Input::Up,
-                KeyCode::Char('h') | KeyCode::LeftArrow | KeyCode::Backspace => Input::Left,
+                KeyCode::LeftArrow | KeyCode::Backspace => Input::Left,
+                KeyCode::Char('h') => {
+                    if key.modifiers.contains(Modifiers::CTRL) {
+                        Input::ToggleShowHidden
+                    } else {
+                        Input::Left
+                    }
+                }
+
                 KeyCode::Char('l') | KeyCode::RightArrow | KeyCode::Enter => Input::Right,
                 KeyCode::Home => Input::Home,
                 KeyCode::End => Input::End,

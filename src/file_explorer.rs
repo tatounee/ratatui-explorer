@@ -52,6 +52,7 @@ use crate::{input::Input, widget::Renderer, Theme};
 pub struct FileExplorer {
     cwd: PathBuf,
     files: Vec<File>,
+    show_hidden: bool,
     selected: usize,
     theme: Theme,
 }
@@ -60,6 +61,7 @@ impl FileExplorer {
     /// Creates a new instance of `FileExplorer`.
     ///
     /// This method initializes a `FileExplorer` with the current working directory.
+    /// By default, hidden files are not shown.
     ///
     /// # Errors
     ///
@@ -87,6 +89,7 @@ impl FileExplorer {
         let mut file_explorer = Self {
             cwd,
             files: vec![],
+            show_hidden: false,
             selected: 0,
             theme: Theme::default(),
         };
@@ -158,6 +161,7 @@ impl FileExplorer {
     /// - `End`: Select the last entry.
     /// - `PageUp`: Scroll the selection up.
     /// - `PageDown`: Scroll the selection down.
+    /// - `ToggleShowHidden`: Toggle between showing hidden files or not.
     /// - `None`: Do nothing.
     ///
     /// [`Input`](crate::input::Input) implement [`From<Event>`](https://doc.rust-lang.org/stable/std/convert/trait.From.html)
@@ -240,6 +244,7 @@ impl FileExplorer {
                     self.selected = 0;
                 }
             }
+            Input::ToggleShowHidden => self.set_show_hidden(!self.show_hidden)?,
             Input::None => (),
         }
 
@@ -268,6 +273,29 @@ impl FileExplorer {
         self.get_and_set_files()?;
         self.selected = 0;
 
+        Ok(())
+    }
+
+    /// Sets whether hidden files should be shown in the file explorer.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if the directory `cwd` can not be listed.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use ratatui_explorer::FileExplorer;
+    ///
+    /// let mut file_explorer = FileExplorer::new().unwrap();
+    ///
+    /// file_explorer.set_show_hidden(true).unwrap();
+    /// assert_eq!(file_explorer.show_hidden(), true);
+    /// ```
+    #[inline]
+    pub fn set_show_hidden(&mut self, show_hidden: bool) -> Result<()> {
+        self.show_hidden = show_hidden;
+        self.get_and_set_files()?;
         Ok(())
     }
 
@@ -396,6 +424,28 @@ impl FileExplorer {
         &self.cwd
     }
 
+    /// Indicates whether hidden files are currently visible in the file explorer.
+    /// # Examples
+    ///
+    ///
+    /// You can get the current value like this:
+    /// ```no_run
+    /// use ratatui_explorer::FileExplorer;
+    ///
+    /// let mut file_explorer = FileExplorer::new().unwrap();
+    ///
+    /// // By default, hidden files are not shown.
+    /// assert_eq!(file_explorer.show_hidden(), false);
+    ///
+    /// file_explorer.set_show_hidden(true);
+    /// assert_eq!(file_explorer.show_hidden(), true);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub const fn show_hidden(&self) -> bool {
+        self.show_hidden
+    }
+
     /// Returns the a [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html) of files and directories in the current working directory
     /// of the file explorer, plus the parent directory if it exist.
     ///
@@ -481,23 +531,28 @@ impl FileExplorer {
     fn get_and_set_files(&mut self) -> Result<()> {
         let (mut dirs, mut none_dirs): (Vec<_>, Vec<_>) = std::fs::read_dir(&self.cwd)?
             .filter_map(|entry| {
-                entry.ok().map(|e| {
-                    let path = e.path();
-                    let file_type = path.metadata().map(|m| m.file_type()).ok();
-                    let is_dir = file_type.is_some_and(|f| f.is_dir());
-                    let name = if is_dir {
-                        format!("{}/", e.file_name().to_string_lossy())
-                    } else {
-                        e.file_name().to_string_lossy().into_owned()
-                    };
+                let entry = entry.ok()?;
+                let path = entry.path();
+                let file_type = path.metadata().map(|m| m.file_type()).ok()?;
+                let is_dir = file_type.is_dir();
 
-                    File {
-                        name,
-                        path,
-                        is_dir,
-                        file_type,
-                    }
-                })
+                let name = if is_dir {
+                    format!("{}/", entry.file_name().to_string_lossy())
+                } else {
+                    entry.file_name().to_string_lossy().into_owned()
+                };
+
+                let file = File {
+                    name,
+                    path,
+                    is_dir,
+                    file_type: Some(file_type),
+                };
+                if !self.show_hidden && file.is_hidden() {
+                    None
+                } else {
+                    Some(file)
+                }
             })
             .partition(File::is_dir);
 
@@ -661,6 +716,47 @@ impl File {
     #[must_use]
     pub fn is_file(&self) -> bool {
         self.file_type.is_some_and(|f| f.is_file())
+    }
+
+    /// Returns `true` if the file or directory is hidden.
+    ///
+    /// # Examples
+    /// Suppose you have this tree file, with `passport.png` selected inside `file_explorer`:
+    /// ```plaintext
+    /// /
+    /// ├── .git
+    /// └── Documents
+    ///     ├── passport.png  <- selected
+    ///     └── resume.pdf
+    /// ```
+    /// You can know if the selected file or directory is hidden like this:
+    /// ```no_run
+    /// use ratatui_explorer::FileExplorer;
+    ///
+    /// let file_explorer = FileExplorer::new().unwrap();
+    ///
+    /// /* user select `password.png` */
+    ///
+    /// let file = file_explorer.current();
+    /// assert_eq!(file.is_hidden(), false);
+    ///
+    /// /* user select `.git` */
+    ///
+    /// let file = file_explorer.current();
+    /// assert_eq!(file.is_hidden(), true);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn is_hidden(&self) -> bool {
+        #[cfg(unix)]
+        {
+            self.name.starts_with(".")
+        }
+        #[cfg(windows)]
+        {
+            const FILE_ATTRIBUTE_HIDDEN: u32 = 0x00000002;
+            file.metadata()?.file_attributes() & FILE_ATTRIBUTE_HIDDEN == 0
+        }
     }
 
     /// Returns the `FileType` of the file, when available.
