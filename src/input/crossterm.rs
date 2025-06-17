@@ -1,5 +1,5 @@
-use ratatui::crossterm;
 use crossterm::event::{Event, KeyCode};
+use ratatui::crossterm::{self, event::KeyModifiers};
 
 use super::Input;
 
@@ -16,7 +16,14 @@ impl From<&Event> for Input {
                 let input = match key.code {
                     KeyCode::Char('j') | KeyCode::Down => Input::Down,
                     KeyCode::Char('k') | KeyCode::Up => Input::Up,
-                    KeyCode::Char('h') | KeyCode::Left | KeyCode::Backspace => Input::Left,
+                    KeyCode::Left | KeyCode::Backspace => Input::Left,
+                    KeyCode::Char('h') => {
+                        if key.modifiers.contains(KeyModifiers::CONTROL) {
+                            Input::ToggleShowHidden
+                        } else {
+                            Input::Left
+                        }
+                    }
                     KeyCode::Char('l') | KeyCode::Right | KeyCode::Enter => Input::Right,
                     KeyCode::Home => Input::Home,
                     KeyCode::End => Input::End,
