@@ -125,5 +125,5 @@ The following bindings are used by default for [crossterm](https://docs.rs/cross
 | `End`                             | Select the last entry      |
 | `PageUp`                          | Scroll the selection up    |
 | `PageDown`                        | Scroll the selection down  |
-| `H`                |  Toggle between showing hidden files or not.|
+| `<Ctrl> + H`                |  Toggle between showing hidden files or not.|
 _*if the selected item is a directory_
