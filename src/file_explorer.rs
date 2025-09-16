@@ -781,8 +781,6 @@ impl File {
     /// ```
     /// You can know if the selected file is a directory like this:
     /// ```no_run
-    /// use std::os::unix::fs::FileTypeExt;
-    ///
     /// use ratatui_explorer::FileExplorer;
     ///
     /// let file_explorer = FileExplorer::new().unwrap();
@@ -790,14 +788,12 @@ impl File {
     /// /* user select `password.png` */
     ///
     /// let file = file_explorer.current();
-    /// assert_eq!(file.file_type().unwrap().is_file(), true);
-    /// assert_eq!(file.file_type().unwrap().is_socket(), false);
+    /// assert_eq!(file.file_type().unwrap().is_dir(), false);
     ///
     /// /* user select `Documents` */
     ///
     /// let file = file_explorer.current();
-    /// assert_eq!(file.file_type().unwrap().is_file(), false);
-    /// assert_eq!(file.file_type().unwrap().is_socket(), false);
+    /// assert_eq!(file.file_type().unwrap().is_dir(), true);
     /// ```
     #[inline]
     #[must_use]
