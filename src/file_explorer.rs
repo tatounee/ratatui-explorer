@@ -1,4 +1,4 @@
-use std::{fs::FileType, io::Result, path::PathBuf};
+use std::{fs::FileType, io::Result, path::Path, path::PathBuf};
 
 use ratatui::widgets::WidgetRef;
 
@@ -85,16 +85,14 @@ impl FileExplorer {
     /// ```
     pub fn new() -> Result<FileExplorer> {
         let cwd = std::env::current_dir()?;
-
-        let mut file_explorer = Self {
+        let files = Self::get_files(&cwd, false)?;
+        let file_explorer = Self {
             cwd,
-            files: vec![],
+            files,
             show_hidden: false,
             selected: 0,
             theme: Theme::default(),
         };
-
-        file_explorer.get_and_set_files()?;
 
         Ok(file_explorer)
     }
@@ -232,16 +230,14 @@ impl FileExplorer {
                 let parent = self.cwd.parent();
 
                 if let Some(parent) = parent {
-                    self.cwd = parent.to_path_buf();
-                    self.get_and_set_files()?;
-                    self.selected = 0;
+                    let path = parent.to_path_buf();
+                    self.set_cwd(path)?;
                 }
             }
             Input::Right => {
                 if self.files[self.selected].path.is_dir() {
-                    self.cwd = self.files.swap_remove(self.selected).path;
-                    self.get_and_set_files()?;
-                    self.selected = 0;
+                    let path = self.files.swap_remove(self.selected).path;
+                    self.set_cwd(path)?;
                 }
             }
             Input::ToggleShowHidden => self.set_show_hidden(!self.show_hidden)?,
@@ -269,8 +265,9 @@ impl FileExplorer {
     /// ```
     #[inline]
     pub fn set_cwd<P: Into<PathBuf>>(&mut self, cwd: P) -> Result<()> {
-        self.cwd = cwd.into();
-        self.get_and_set_files()?;
+        let cwd = cwd.into();
+        self.files = Self::get_files(&cwd, self.show_hidden)?;
+        self.cwd = cwd;
         self.selected = 0;
 
         Ok(())
@@ -295,7 +292,7 @@ impl FileExplorer {
     #[inline]
     pub fn set_show_hidden(&mut self, show_hidden: bool) -> Result<()> {
         self.show_hidden = show_hidden;
-        self.get_and_set_files()?;
+        self.files = Self::get_files(&self.cwd, show_hidden)?;
         self.selected = 0;
 
         Ok(())
@@ -530,8 +527,8 @@ impl FileExplorer {
 
     /// Get the files and directories in the current working directory and set them in the file explorer.
     /// It add the parent directory at the beginning of the [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html) of files if it exist.
-    fn get_and_set_files(&mut self) -> Result<()> {
-        let (mut dirs, mut none_dirs): (Vec<_>, Vec<_>) = std::fs::read_dir(&self.cwd)?
+    fn get_files(working_dir: &Path, show_hidden: bool) -> Result<Vec<File>> {
+        let (mut dirs, mut none_dirs): (Vec<_>, Vec<_>) = std::fs::read_dir(working_dir)?
             .filter_map(|entry| {
                 let entry = entry.ok()?;
                 let path = entry.path();
@@ -563,7 +560,7 @@ impl FileExplorer {
                     is_hidden,
                     file_type,
                 };
-                if !self.show_hidden && file.is_hidden() {
+                if !show_hidden && file.is_hidden() {
                     None
                 } else {
                     Some(file)
@@ -574,7 +571,7 @@ impl FileExplorer {
         dirs.sort_unstable_by(|f1, f2| f1.name.cmp(&f2.name));
         none_dirs.sort_unstable_by(|f1, f2| f1.name.cmp(&f2.name));
 
-        if let Some(parent) = self.cwd.parent() {
+        let files = if let Some(parent) = working_dir.parent() {
             let mut files = Vec::with_capacity(1 + dirs.len() + none_dirs.len());
 
             files.push(File {
@@ -588,17 +585,17 @@ impl FileExplorer {
             files.extend(dirs);
             files.extend(none_dirs);
 
-            self.files = files;
+            files
         } else {
             let mut files = Vec::with_capacity(dirs.len() + none_dirs.len());
 
             files.extend(dirs);
             files.extend(none_dirs);
 
-            self.files = files;
-        }
+            files
+        };
 
-        Ok(())
+        Ok(files)
     }
 }
 
@@ -814,5 +811,22 @@ mod tests {
 
         is_send::<FileExplorer>();
         is_sync::<FileExplorer>();
+    }
+    use tempdir::TempDir;
+
+    #[test]
+    fn test_set_cwd_does_not_change_displayed_path_on_failure() -> Result<()> {
+        let tmp_dir = TempDir::new("cwd_does_not_change_on_failure")?;
+        let does_not_exist_path = tmp_dir.path().join("does_not_exist");
+        assert!(!does_not_exist_path.exists());
+
+        let mut explorer = FileExplorer::new()?;
+        let previous_cwd = explorer.cwd().clone();
+
+        let result = explorer.set_cwd(does_not_exist_path);
+        assert!(result.is_err());
+        assert_eq!(&previous_cwd, explorer.cwd());
+
+        Ok(())
     }
 }
