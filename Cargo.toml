@@ -29,5 +29,8 @@ crossterm = ["ratatui/crossterm"]
 termion = ["ratatui/termion"]
 termwiz = ["ratatui/termwiz"]
 
+[dev-dependencies]
+tempdir = "0.3.7"
+
 [package.metadata.docs.rs]
 cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
