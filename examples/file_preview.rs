@@ -4,13 +4,16 @@ use std::{
     io::{self, stdout},
 };
 
-use ratatui::crossterm;
 use crossterm::{
     event::{read, Event, KeyCode},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
-use ratatui::{prelude::*, widgets::*};
+use ratatui::crossterm;
+use ratatui::{
+    prelude::*,
+    widgets::{Block, BorderType, Borders, Clear, FrameExt, Paragraph},
+};
 
 use ratatui_explorer::{File, FileExplorer, Theme};
 
@@ -38,7 +41,7 @@ fn main() -> io::Result<()> {
         terminal.draw(|f| {
             let chunks = layout.split(f.area());
 
-            f.render_widget(&file_explorer.widget(), chunks[0]);
+            f.render_widget_ref(file_explorer.widget(), chunks[0]);
             f.render_widget(Clear, chunks[1]);
             f.render_widget(
                 Paragraph::new(file_content).block(
