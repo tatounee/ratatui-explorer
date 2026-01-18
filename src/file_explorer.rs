@@ -129,7 +129,7 @@ impl FileExplorer {
     /// # Examples
     ///
     /// ```no_run
-    /// use ratatui::{Terminal, backend::CrosstermBackend};
+    /// use ratatui::{Terminal, backend::CrosstermBackend, widgets::FrameExt as _};
     /// use ratatui_explorer::FileExplorer;
     ///
     /// let mut file_explorer = FileExplorer::new().unwrap();
@@ -139,7 +139,7 @@ impl FileExplorer {
     /// loop {
     ///     terminal.draw(|f| {
     ///         let widget = file_explorer.widget(); // Get the widget to render the file explorer
-    ///         f.render_widget(&widget, f.area());
+    ///         f.render_widget_ref(widget, f.area());
     ///     }).unwrap();
     ///
     ///     // ...

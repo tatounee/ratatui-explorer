@@ -59,6 +59,7 @@ use ratatui::crossterm::{
     ExecutableCommand,
 };
 use ratatui::prelude::*;
+use ratatui::widgets::FrameExt as _;
 
 use ratatui_explorer::{FileExplorer, Theme};
 
@@ -75,7 +76,7 @@ fn main() -> io::Result<()> {
     loop {
         // Render the file explorer widget.
         terminal.draw(|f| {
-            f.render_widget(&file_explorer.widget(), f.area());
+            f.render_widget_ref(file_explorer.widget(), f.area());
         })?;
 
         // Read the next event from the terminal.

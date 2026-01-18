@@ -1,12 +1,12 @@
 use std::io::{self, stdout};
 
-use ratatui::crossterm;
 use crossterm::{
     event::{read, Event, KeyCode},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
 use ratatui::prelude::*;
+use ratatui::{crossterm, widgets::FrameExt};
 
 use ratatui_explorer::{FileExplorer, Theme};
 
@@ -23,7 +23,7 @@ fn main() -> io::Result<()> {
     loop {
         // Render the file explorer widget.
         terminal.draw(|f| {
-            f.render_widget(&file_explorer.widget(), f.area());
+            f.render_widget_ref(file_explorer.widget(), f.area());
         })?;
 
         // Read the next event from the terminal.

@@ -50,7 +50,7 @@ impl WidgetRef for Renderer<'_> {
             list = list.block(block);
         }
 
-        ratatui::widgets::StatefulWidgetRef::render_ref(&list, area, buf, &mut state);
+        ratatui::widgets::StatefulWidget::render(&list, area, buf, &mut state);
     }
 }
 
