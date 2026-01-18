@@ -53,7 +53,7 @@ Then inside your `main.rs` file:
 ```rust no_run
 use std::io::{self, stdout};
 
-use crossterm::{
+use ratatui::crossterm::{
     event::{read, Event, KeyCode},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
