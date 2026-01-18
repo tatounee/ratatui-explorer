@@ -10,7 +10,7 @@ use ratatui::{
 
 use crate::{File, FileExplorer};
 
-type LineFactory = Arc<dyn Fn(&FileExplorer) -> Line<'static> + Send + Sync>;
+type LineFactory = Arc<dyn Fn(&FileExplorer) -> Line<'_> + Send + Sync>;
 
 pub struct Renderer<'a>(pub(crate) &'a FileExplorer);
 
@@ -342,7 +342,7 @@ impl Theme {
     #[must_use = "method moves the value of self and returns the modified value"]
     pub fn with_title_top(
         mut self,
-        title_top: impl Fn(&FileExplorer) -> Line<'static> + 'static + Send + Sync,
+        title_top: impl Fn(&FileExplorer) -> Line<'_> + 'static + Send + Sync,
     ) -> Self {
         self.title_top.push(Arc::new(title_top));
         self
@@ -373,7 +373,7 @@ impl Theme {
     #[must_use = "method moves the value of self and returns the modified value"]
     pub fn with_title_bottom(
         mut self,
-        title_bottom: impl Fn(&FileExplorer) -> Line<'static> + 'static + Send + Sync,
+        title_bottom: impl Fn(&FileExplorer) -> Line<'_> + 'static + Send + Sync,
     ) -> Self {
         self.title_bottom.push(Arc::new(title_bottom));
         self
@@ -445,7 +445,7 @@ impl Theme {
     /// Returns the generated top titles of the theme.
     #[inline]
     #[must_use]
-    pub fn title_top(&self, file_explorer: &FileExplorer) -> Vec<Line<'_>> {
+    pub fn title_top<'a>(&self, file_explorer: &'a FileExplorer) -> Vec<Line<'a>> {
         self.title_top
             .iter()
             .map(|title_top| title_top(file_explorer))
@@ -455,7 +455,7 @@ impl Theme {
     /// Returns the generated bottom titles of the theme.
     #[inline]
     #[must_use]
-    pub fn title_bottom(&self, file_explorer: &FileExplorer) -> Vec<Line<'_>> {
+    pub fn title_bottom<'a>(&self, file_explorer: &'a FileExplorer) -> Vec<Line<'a>> {
         self.title_bottom
             .iter()
             .map(|title_bottom| title_bottom(file_explorer))
