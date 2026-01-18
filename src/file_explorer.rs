@@ -805,3 +805,18 @@ impl File {
         self.file_type
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_thread_safe() {
+        fn is_sync<T: Sync>() {}
+
+        fn is_send<T: Send>() {}
+
+        is_send::<FileExplorer>();
+        is_sync::<FileExplorer>();
+    }
+}
