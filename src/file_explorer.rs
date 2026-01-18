@@ -540,7 +540,7 @@ impl FileExplorer {
                 let is_dir = file_type.is_some_and(|f| f.is_dir());
 
                 let name = entry.file_name().to_string_lossy().into_owned();
-                let name = if is_dir { format!("{}/", name) } else { name };
+                let name = if is_dir { format!("{name}/") } else { name };
 
                 let is_hidden = {
                     #[cfg(unix)]
@@ -596,7 +596,7 @@ impl FileExplorer {
             files.extend(none_dirs);
 
             self.files = files;
-        };
+        }
 
         Ok(())
     }
