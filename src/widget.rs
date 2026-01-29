@@ -5,7 +5,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Style},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, HighlightSpacing, List, ListState, WidgetRef},
+    widgets::{Block, Borders, HighlightSpacing, List, ListState, StatefulWidget, Widget},
 };
 
 use crate::{File, FileExplorer};
@@ -14,11 +14,8 @@ type LineFactory = Arc<dyn Fn(&FileExplorer) -> Line<'static> + Send + Sync>;
 
 pub struct Renderer<'a>(pub(crate) &'a FileExplorer);
 
-impl WidgetRef for Renderer<'_> {
-    fn render_ref(&self, area: Rect, buf: &mut Buffer)
-    where
-        Self: Sized,
-    {
+impl Widget for Renderer<'_> {
+    fn render(self, area: Rect, buf: &mut Buffer) {
         let mut state = ListState::default().with_selected(Some(self.0.selected_idx()));
 
         let highlight_style = if self.0.current().is_dir() {
@@ -50,7 +47,7 @@ impl WidgetRef for Renderer<'_> {
             list = list.block(block);
         }
 
-        ratatui::widgets::StatefulWidgetRef::render_ref(&list, area, buf, &mut state);
+        StatefulWidget::render(list, area, buf, &mut state);
     }
 }
 
@@ -445,7 +442,7 @@ impl Theme {
     /// Returns the generated top titles of the theme.
     #[inline]
     #[must_use]
-    pub fn title_top(&self, file_explorer: &FileExplorer) -> Vec<Line> {
+    pub fn title_top(&self, file_explorer: &FileExplorer) -> Vec<Line<'_>> {
         self.title_top
             .iter()
             .map(|title_top| title_top(file_explorer))
@@ -455,7 +452,7 @@ impl Theme {
     /// Returns the generated bottom titles of the theme.
     #[inline]
     #[must_use]
-    pub fn title_bottom(&self, file_explorer: &FileExplorer) -> Vec<Line> {
+    pub fn title_bottom(&self, file_explorer: &FileExplorer) -> Vec<Line<'_>> {
         self.title_bottom
             .iter()
             .map(|title_bottom| title_bottom(file_explorer))

@@ -1,7 +1,5 @@
 use std::{fs::FileType, io::Result, path::PathBuf};
 
-use ratatui::widgets::WidgetRef;
-
 use crate::{input::Input, widget::Renderer, Theme};
 
 /// A file explorer that allows browsing and selecting files and directories.
@@ -139,7 +137,7 @@ impl FileExplorer {
     /// loop {
     ///     terminal.draw(|f| {
     ///         let widget = file_explorer.widget(); // Get the widget to render the file explorer
-    ///         f.render_widget(&widget, f.area());
+    ///         f.render_widget(widget, f.area());
     ///     }).unwrap();
     ///
     ///     // ...
@@ -147,7 +145,7 @@ impl FileExplorer {
     /// ```
     #[inline]
     #[must_use]
-    pub const fn widget(&self) -> impl WidgetRef + '_ {
+    pub const fn widget(&self) -> Renderer<'_> {
         Renderer(self)
     }
 

@@ -1,8 +1,7 @@
 use std::io::{self, stdout};
 
-use ratatui::crossterm;
-use crossterm::{
-    event::{read, Event, KeyCode},
+use ratatui::crossterm::{
+    event::{read, Event, KeyCode, KeyModifiers},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
@@ -26,7 +25,7 @@ fn main() -> io::Result<()> {
     loop {
         // Render the file explorer widget.
         terminal.draw(|f| {
-            f.render_widget(&file_explorer.widget(), f.area());
+            f.render_widget(file_explorer.widget(), f.area());
         })?;
 
         // Read the next event from the terminal.
@@ -34,7 +33,7 @@ fn main() -> io::Result<()> {
         // If the user presses `Ctrl + s`, switch the theme.
         // If the user presses `Ctrl + q`, quit the application.
         if let Event::Key(key) = event {
-            if key.modifiers == crossterm::event::KeyModifiers::CONTROL {
+            if key.modifiers == KeyModifiers::CONTROL {
                 match key.code {
                     KeyCode::Char('s') => {
                         dark_theme = !dark_theme;
