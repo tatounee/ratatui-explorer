@@ -444,6 +444,41 @@ impl FileExplorer {
         &self.files[self.selected]
     }
 
+    /// Filters the files in the current working directory based on a predicate.
+    ///
+    /// This method mutates the file explorer by filtering the internal list of files using the provided
+    /// predicate. Directories are always kept regardless of the predicate result.
+    ///
+    /// # Examples:
+    ///
+    /// ```
+    /// const SUPPORTED_FORMATS: [&'static str; 2] = ["wav", "mp3"];
+    ///
+    /// self.explorer.filter(|f| {
+    ///     if let Some(extension) = f.path().extension() {
+    ///         let extension = extension.to_str().unwrap_or_default();
+    ///         return SUPPORTED_FORMATS.contains(&extension);
+    ///     };
+    ///     false
+    /// });
+    /// ```
+    /// To reset the filter, you can set the directory again:
+    /// ```
+    /// let cwd = self.explorer.cwd().clone();
+    /// self.explorer.set_cwd(cwd).unwrap();
+    /// ```
+    pub fn filter(&mut self, predicate: fn(&File) -> bool) {
+        let files_iter = self.files.clone().into_iter();
+        self.files = files_iter
+            .filter(|file: &File| {
+                if file.is_dir {
+                    return true;
+                }
+                predicate(file)
+            })
+            .collect();
+    }
+
     /// Returns the current working directory of the file explorer.
     ///
     /// # Examples
