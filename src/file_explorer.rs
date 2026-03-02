@@ -843,8 +843,33 @@ impl File {
 mod tests {
     use super::*;
 
+    use std::fs::{self, File};
     use tempdir::TempDir;
-    use std::fs::File;
+
+    /// Build this temporary file system:
+    /// ```plaintext
+    /// <unknow>
+    /// └ root
+    ///   ├── .git
+    ///   └── Documents
+    ///       ├── passport.png
+    ///       └── resume.pdf
+    /// ```
+    fn build_tmp_file_system() -> Result<TempDir> {
+        let root = TempDir::new("root")?;
+
+        let git_path = root.path().join(".git");
+        let documents_path = root.path().join("Documents");
+        let passport_path = root.path().join("Documents/passport.png");
+        let resume_path = root.path().join("Documents/resume.pdf");
+
+        fs::create_dir(git_path)?;
+        fs::create_dir(documents_path)?;
+        File::create(passport_path)?;
+        File::create(resume_path)?;
+
+        Ok(root)
+    }
 
     #[test]
     fn test_thread_safe() {
@@ -875,13 +900,9 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn test_hidden_files_are_ignored() -> Result<()> {
-        let tmp_dir = TempDir::new("hidden_files_are_ignored")?;
-        let hidden_path = tmp_dir.path().join(".ImHidden");
-        let visible_path = tmp_dir.path().join("YouCanSeeMe");
-        File::create(hidden_path)?;
-        File::create(visible_path)?;
+        let root = build_tmp_file_system()?;
 
-        let mut explorer = FileExplorer::new_in(tmp_dir.path())?;
+        let mut explorer = FileExplorer::new_in(root.path())?;
         assert_eq!(explorer.files().len(), 2);
 
         explorer.set_show_hidden(true)?;
