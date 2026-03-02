@@ -97,7 +97,6 @@ impl FileExplorer {
         Ok(file_explorer)
     }
 
-
     /// Creates a new instance of `FileExplorer`.
     ///
     /// This method initializes a `FileExplorer` with a given working directory.
@@ -162,7 +161,7 @@ impl FileExplorer {
     }
 
     /// Build a ratatui widget to render the file explorer. The widget can then
-    /// be rendered with [`Frame::render_widget`](https://docs.rs/ratatui/latest/ratatui/terminal/struct.Frame.html#method.render_widget).
+    /// be rendered with [`Frame::render_widget`](https://docs.rs/ratatui/latest/ratatui/struct.Frame.html#method.render_widget) or [`FrameExt::render_widget_ref`](https://docs.rs/ratatui/latest/ratatui/widgets/trait.FrameExt.html#tymethod.render_widget_ref).
     ///
     /// # Examples
     ///
@@ -205,7 +204,8 @@ impl FileExplorer {
     /// [`Input`](crate::input::Input) implement [`From<Event>`](https://doc.rust-lang.org/stable/std/convert/trait.From.html)
     /// for `Event` from [crossterm](https://docs.rs/crossterm/latest/crossterm/event/enum.Event.html),
     /// [termion](https://docs.rs/termion/latest/termion/event/enum.Event.html)
-    /// and [termwiz](https://docs.rs/termwiz/latest/termwiz/input/enum.InputEvent.html) (`InputEvent` in this case).
+    /// and [termwiz](https://docs.rs/termwiz/latest/termwiz/input/enum.InputEvent.html) (`InputEvent` in the latter).
+    /// Here, the [default bindings](https://docs.rs/ratatui-explorer/latest/ratatui_explorer/#bindings).
     ///
     /// # Errors
     ///
@@ -226,6 +226,7 @@ impl FileExplorer {
     /// use ratatui_explorer::{FileExplorer, Input};
     ///
     /// let mut file_explorer = FileExplorer::new().unwrap();
+    /// file_explorer.set_show_hidden(true);
     ///
     /// /* user select `password.png` */
     ///
@@ -234,13 +235,13 @@ impl FileExplorer {
     ///
     /// file_explorer.handle(Input::Up).unwrap();
     /// file_explorer.handle(Input::Up).unwrap();
-    /// assert_eq!(file_explorer.current().name(), "Documents");
+    /// assert_eq!(file_explorer.current().name(), "../");
     ///
     /// file_explorer.handle(Input::Left).unwrap();
     /// assert_eq!(file_explorer.cwd().display().to_string(), "/");
     ///
     /// file_explorer.handle(Input::Right).unwrap();
-    /// assert_eq!(file_explorer.cwd().display().to_string(), "/Documents");
+    /// assert_eq!(file_explorer.cwd().display().to_string(), "/.git");
     /// ```
     pub fn handle<I: Into<Input>>(&mut self, input: I) -> Result<()> {
         const SCROLL_COUNT: usize = 12;
@@ -321,13 +322,22 @@ impl FileExplorer {
     ///
     /// # Examples
     ///
+    /// Suppose you have this tree file:
+    /// ```plaintext
+    /// /
+    /// ├── .git
+    /// └── Documents
+    ///     ├── passport.png
+    ///     └── resume.pdf
+    /// ```
     /// ```no_run
     /// use ratatui_explorer::FileExplorer;
     ///
-    /// let mut file_explorer = FileExplorer::new().unwrap();
+    /// let mut file_explorer = FileExplorer::new_in("/").unwrap();
+    /// assert_eq!(file_explorer.files().len(), 1); // Only /Documents is shown
     ///
     /// file_explorer.set_show_hidden(true).unwrap();
-    /// assert_eq!(file_explorer.show_hidden(), true);
+    /// assert_eq!(file_explorer.files().len(), 2); // /Documents and /.git are shown
     /// ```
     #[inline]
     pub fn set_show_hidden(&mut self, show_hidden: bool) -> Result<()> {
@@ -355,7 +365,7 @@ impl FileExplorer {
     }
 
     /// Sets the selected file or directory index inside the current [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html) of files
-    /// and directories if the file explorer.
+    /// and directories in the file explorer.
     ///
     /// The file explorer add the parent directory at the beginning of the
     /// [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html) of files, so setting the selected index to 0 will select the parent directory
@@ -373,7 +383,7 @@ impl FileExplorer {
     /// /
     /// ├── .git
     /// └── Documents
-    ///     ├── passport.png  <- selected (index 2)
+    ///     ├── passport.png  <- selected (index 1)
     ///     └── resume.pdf
     /// ```
     /// You can set the selected index like this:
@@ -385,18 +395,18 @@ impl FileExplorer {
     /// /* user select `password.png` */
     ///
     /// // Because the file explorer add the parent directory at the beginning
-    /// // of the [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html) of files, index 0 is indeed the parent directory.
+    /// // of the `Vec` of files, index 0 is indeed the parent directory.
     /// file_explorer.set_selected_idx(0);
     /// assert_eq!(file_explorer.current().path().display().to_string(), "/");
     ///
     /// file_explorer.set_selected_idx(1);
-    /// assert_eq!(file_explorer.current().path().display().to_string(), "/Documents");
+    /// assert_eq!(file_explorer.current().path().display().to_string(), "/Documents/passport.png");
     ///
     /// #[test]
     /// #[should_panic]
     /// fn index_out_of_bound() {
     ///    let mut file_explorer = FileExplorer::new().unwrap();
-    ///    file_explorer.set_selected_idx(4);
+    ///    file_explorer.set_selected_idx(3);
     /// }
     /// ```
     #[inline]
@@ -507,7 +517,7 @@ impl FileExplorer {
     /// /* user select `password.png` */
     ///
     /// let files = file_explorer.files();
-    /// assert_eq!(files.len(), 4); // 3 files/directory and the parent directory
+    /// assert_eq!(files.len(), 3); // 2 files and 1 parent directory
     /// ```
     #[inline]
     #[must_use]
@@ -525,7 +535,7 @@ impl FileExplorer {
     /// /
     /// ├── .git
     /// └── Documents
-    ///     ├── passport.png  <- selected (index 2)
+    ///     ├── passport.png  <- selected (index 1)
     ///     └── resume.pdf
     /// ```
     /// You can get the selected index like this:
@@ -539,8 +549,8 @@ impl FileExplorer {
     /// let selected_idx = file_explorer.selected_idx();
     ///
     /// // Because the file explorer add the parent directory at the beginning
-    /// // of the [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html) of files, the selected index will be 2.
-    /// assert_eq!(selected_idx, 2);
+    /// // of the `Vec` of files, the selected index will be 1.
+    /// assert_eq!(selected_idx, 1);
     /// ```
     #[inline]
     #[must_use]
@@ -787,7 +797,8 @@ impl File {
     /// ```no_run
     /// use ratatui_explorer::FileExplorer;
     ///
-    /// let file_explorer = FileExplorer::new().unwrap();
+    /// let mut file_explorer = FileExplorer::new().unwrap();
+    /// file_explorer.set_show_hidden(true);
     ///
     /// /* user select `password.png` */
     ///
@@ -805,7 +816,7 @@ impl File {
         self.is_hidden
     }
 
-    /// Returns the `FileType` of the file, when available.
+    /// Returns the [`FileType`](https://doc.rust-lang.org/stable/std/fs/struct.FileType.html) of the file, when available.
     ///
     /// # Examples
     /// Suppose you have this tree file, with `passport.png` selected inside `file_explorer`:
