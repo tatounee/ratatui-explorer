@@ -843,6 +843,9 @@ impl File {
 mod tests {
     use super::*;
 
+    use tempdir::TempDir;
+    use std::fs::File;
+
     #[test]
     fn test_thread_safe() {
         fn is_sync<T: Sync>() {}
@@ -852,7 +855,6 @@ mod tests {
         is_send::<FileExplorer>();
         is_sync::<FileExplorer>();
     }
-    use tempdir::TempDir;
 
     #[test]
     fn test_set_cwd_does_not_change_displayed_path_on_failure() -> Result<()> {
@@ -866,6 +868,24 @@ mod tests {
         let result = explorer.set_cwd(does_not_exist_path);
         assert!(result.is_err());
         assert_eq!(&previous_cwd, explorer.cwd());
+
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn test_hidden_files_are_ignored() -> Result<()> {
+        let tmp_dir = TempDir::new("hidden_files_are_ignored")?;
+        let hidden_path = tmp_dir.path().join(".ImHidden");
+        let visible_path = tmp_dir.path().join("YouCanSeeMe");
+        File::create(hidden_path)?;
+        File::create(visible_path)?;
+
+        let mut explorer = FileExplorer::new_in(tmp_dir.path())?;
+        assert_eq!(explorer.files().len(), 2);
+
+        explorer.set_show_hidden(true)?;
+        assert_eq!(explorer.files().len(), 3);
 
         Ok(())
     }
