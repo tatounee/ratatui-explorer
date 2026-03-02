@@ -97,6 +97,46 @@ impl FileExplorer {
         Ok(file_explorer)
     }
 
+
+    /// Creates a new instance of `FileExplorer`.
+    ///
+    /// This method initializes a `FileExplorer` with a given working directory.
+    /// By default, hidden files are not shown.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if the directory `cwd` can not be listed.
+    ///
+    /// # Examples
+    /// Suppose you have this tree file:
+    /// ```plaintext
+    /// /
+    /// ├── .git
+    /// └── Documents
+    ///     ├── passport.png
+    ///     └── resume.pdf
+    /// ```
+    /// You can create a new `FileExplorer` like this:
+    /// ```no_run
+    /// use ratatui_explorer::FileExplorer;
+    ///
+    /// let file_explorer = FileExplorer::new_in("/Documents").unwrap();
+    /// assert_eq!(file_explorer.cwd().display().to_string(), "/Documents");
+    /// ```
+    pub fn new_in<P: Into<PathBuf>>(cwd: P) -> Result<FileExplorer> {
+        let cwd = cwd.into();
+        let files = Self::get_files(&cwd, false)?;
+        let file_explorer = Self {
+            cwd,
+            files,
+            show_hidden: false,
+            selected: 0,
+            theme: Theme::default(),
+        };
+
+        Ok(file_explorer)
+    }
+
     /// Creates a new instance of `FileExplorer` with a specific theme.
     ///
     /// This method initializes a `FileExplorer` with the current working directory.
