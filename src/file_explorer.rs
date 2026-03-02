@@ -446,37 +446,35 @@ impl FileExplorer {
 
     /// Filters the files in the current working directory based on a predicate.
     ///
-    /// This method mutates the file explorer by filtering the internal list of files using the provided
-    /// predicate. Directories are always kept regardless of the predicate result.
+    /// This method mutates the file explorer by filtering the internal list of files using the provided predicate.
     ///
     /// # Examples:
     ///
-    /// ```
+    /// ```no_run
+    /// use ratatui_explorer::FileExplorer;
+    ///
     /// const SUPPORTED_FORMATS: [&'static str; 2] = ["wav", "mp3"];
     ///
-    /// self.explorer.filter(|f| {
-    ///     if let Some(extension) = f.path().extension() {
-    ///         let extension = extension.to_str().unwrap_or_default();
-    ///         return SUPPORTED_FORMATS.contains(&extension);
-    ///     };
-    ///     false
+    /// let mut file_explorer = FileExplorer::new().unwrap();
+    /// file_explorer.filter(|f| {
+    ///     match f.path().extension() {
+    ///         Some(extension) => {
+    ///             let extension = extension.to_str().unwrap_or_default();
+    ///             SUPPORTED_FORMATS.contains(&extension)
+    ///         }
+    ///         None => f.is_dir()
+    ///     }
     /// });
     /// ```
     /// To reset the filter, you can set the directory again:
+    /// ```no_run
+    /// # use ratatui_explorer::FileExplorer;
+    /// # let mut file_explorer = FileExplorer::new().unwrap();
+    /// let cwd = file_explorer.cwd().clone();
+    /// file_explorer.set_cwd(cwd).unwrap();
     /// ```
-    /// let cwd = self.explorer.cwd().clone();
-    /// self.explorer.set_cwd(cwd).unwrap();
-    /// ```
-    pub fn filter(&mut self, predicate: fn(&File) -> bool) {
-        let files_iter = self.files.clone().into_iter();
-        self.files = files_iter
-            .filter(|file: &File| {
-                if file.is_dir {
-                    return true;
-                }
-                predicate(file)
-            })
-            .collect();
+    pub fn filter(&mut self, predicate: impl FnMut(&File) -> bool) {
+        self.files.retain(predicate);
     }
 
     /// Returns the current working directory of the file explorer.
