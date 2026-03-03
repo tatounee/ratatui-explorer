@@ -141,13 +141,13 @@ impl Theme {
     /// With this code:
     /// ```no_run
     /// use ratatui::widgets::*;
-    /// use ratatui_explorer::{FileExplorer, Theme};
+    /// use ratatui_explorer::{FileExplorerBuilder, Theme};
     ///
     /// let theme = Theme::default()
     ///     .with_block(Block::default().borders(Borders::ALL))
     ///     .add_default_title();
     ///
-    /// let file_explorer = FileExplorer::with_theme(theme).unwrap();
+    /// let file_explorer = FileExplorerBuilder::build_with_theme(theme).unwrap();
     ///
     /// /* user select `password.png` */
     ///

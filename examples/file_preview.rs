@@ -15,7 +15,7 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Clear, FrameExt, Paragraph},
 };
 
-use ratatui_explorer::{File, FileExplorer, Theme};
+use ratatui_explorer::{File, FileExplorerBuilder, Theme};
 
 fn main() -> io::Result<()> {
     enable_raw_mode()?;
@@ -24,9 +24,11 @@ fn main() -> io::Result<()> {
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
     let layout = Layout::horizontal([Constraint::Ratio(1, 3), Constraint::Ratio(2, 3)]);
 
-    // Create a new file explorer with the default theme and title.
-    let theme = get_theme();
-    let mut file_explorer = FileExplorer::with_theme(theme)?;
+    // Create a new file explorer with the default theme and title. Show hidden files.
+    let mut file_explorer = FileExplorerBuilder::default()
+        .theme(get_theme())
+        .show_hidden(true)
+        .build()?;
 
     loop {
         // Get the content of the current selected file (if it's indeed a file).

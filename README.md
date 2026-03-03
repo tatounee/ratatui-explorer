@@ -61,7 +61,7 @@ use ratatui::crossterm::{
 use ratatui::prelude::*;
 use ratatui::widgets::FrameExt as _;
 
-use ratatui_explorer::{FileExplorer, Theme};
+use ratatui_explorer::{FileExplorerBuilder, Theme};
 
 fn main() -> io::Result<()> {
     enable_raw_mode()?;
@@ -71,7 +71,7 @@ fn main() -> io::Result<()> {
 
     // Create a new file explorer with the default theme and title.
     let theme = Theme::default().add_default_title();
-    let mut file_explorer = FileExplorer::with_theme(theme)?;
+    let mut file_explorer = FileExplorerBuilder::build_with_theme(theme)?;
 
     loop {
         // Render the file explorer widget.

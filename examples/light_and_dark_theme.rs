@@ -11,7 +11,7 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, FrameExt},
 };
 
-use ratatui_explorer::{FileExplorer, Theme};
+use ratatui_explorer::{FileExplorerBuilder, Theme};
 
 fn main() -> io::Result<()> {
     enable_raw_mode()?;
@@ -21,7 +21,7 @@ fn main() -> io::Result<()> {
 
     // Create a new file explorer with the light theme.
     let mut dark_theme = false;
-    let mut file_explorer = FileExplorer::with_theme(get_light_theme())?;
+    let mut file_explorer = FileExplorerBuilder::build_with_theme(get_light_theme())?;
 
     loop {
         // Render the file explorer widget.

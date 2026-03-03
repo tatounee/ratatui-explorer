@@ -1,8 +1,14 @@
-use std::{fs::FileType, io::Result, path::Path, path::PathBuf};
+use std::{io::Result, path::Path, path::PathBuf};
 
 use ratatui::widgets::WidgetRef;
 
 use crate::{input::Input, widget::Renderer, Theme};
+
+mod builder;
+mod file;
+
+pub use file::File;
+pub use builder::FileExplorerBuilder;
 
 /// A file explorer that allows browsing and selecting files and directories.
 ///
@@ -93,69 +99,6 @@ impl FileExplorer {
             selected: 0,
             theme: Theme::default(),
         };
-
-        Ok(file_explorer)
-    }
-
-    /// Creates a new instance of `FileExplorer`.
-    ///
-    /// This method initializes a `FileExplorer` with a given working directory.
-    /// By default, hidden files are not shown.
-    ///
-    /// # Errors
-    ///
-    /// Will return `Err` if the directory `cwd` can not be listed.
-    ///
-    /// # Examples
-    /// Suppose you have this tree file:
-    /// ```plaintext
-    /// /
-    /// ├── .git
-    /// └── Documents
-    ///     ├── passport.png
-    ///     └── resume.pdf
-    /// ```
-    /// You can create a new `FileExplorer` like this:
-    /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
-    /// let file_explorer = FileExplorer::new_in("/Documents").unwrap();
-    /// assert_eq!(file_explorer.cwd().display().to_string(), "/Documents");
-    /// ```
-    pub fn new_in<P: Into<PathBuf>>(cwd: P) -> Result<FileExplorer> {
-        let cwd = cwd.into();
-        let files = Self::get_files(&cwd, false)?;
-        let file_explorer = Self {
-            cwd,
-            files,
-            show_hidden: false,
-            selected: 0,
-            theme: Theme::default(),
-        };
-
-        Ok(file_explorer)
-    }
-
-    /// Creates a new instance of `FileExplorer` with a specific theme.
-    ///
-    /// This method initializes a `FileExplorer` with the current working directory.
-    ///
-    /// # Errors
-    ///
-    /// Will return `Err` if the current working directory can not be listed.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// use ratatui_explorer::{FileExplorer, Theme};
-    ///
-    /// let file_explorer = FileExplorer::with_theme(Theme::default().add_default_title()).unwrap();
-    /// ```
-    #[inline]
-    pub fn with_theme(theme: Theme) -> Result<FileExplorer> {
-        let mut file_explorer = Self::new()?;
-
-        file_explorer.theme = theme;
 
         Ok(file_explorer)
     }
@@ -331,9 +274,9 @@ impl FileExplorer {
     ///     └── resume.pdf
     /// ```
     /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
+    /// use ratatui_explorer::FileExplorerBuilder;
     ///
-    /// let mut file_explorer = FileExplorer::new_in("/").unwrap();
+    /// let mut file_explorer = FileExplorerBuilder::build_with_working_dir("/").unwrap();
     /// assert_eq!(file_explorer.files().len(), 1); // Only /Documents is shown
     ///
     /// file_explorer.set_show_hidden(true).unwrap();
@@ -682,207 +625,6 @@ impl FileExplorer {
     }
 }
 
-/// A file or directory in the file explorer.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct File {
-    name: String,
-    path: PathBuf,
-    is_dir: bool,
-    is_hidden: bool,
-    file_type: Option<FileType>,
-}
-
-impl File {
-    /// Returns the name of the file or directory.
-    ///
-    /// # Examples
-    /// Suppose you have this tree file, with `passport.png` selected inside `file_explorer`:
-    /// ```plaintext
-    /// /
-    /// ├── .git
-    /// └── Documents
-    ///     ├── passport.png  <- selected
-    ///     └── resume.pdf
-    /// ```
-    /// You can get the name of the selected file like this:
-    /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
-    /// let file_explorer = FileExplorer::new().unwrap();
-    ///
-    /// /* user select `password.png` */
-    ///
-    /// let file = file_explorer.current();
-    /// assert_eq!(file.name(), "passport.png");
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
-    /// Returns the path of the file or directory.
-    ///
-    /// # Examples
-    /// Suppose you have this tree file, with `passport.png` selected inside `file_explorer`:
-    /// ```plaintext
-    /// /
-    /// ├── .git
-    /// └── Documents
-    ///     ├── passport.png  <- selected
-    ///     └── resume.pdf
-    /// ```
-    /// You can get the path of the selected file like this:
-    /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
-    /// let file_explorer = FileExplorer::new().unwrap();
-    ///
-    /// /* user select `password.png` */
-    ///
-    /// let file = file_explorer.current();
-    /// assert_eq!(file.path().display().to_string(), "/Documents/passport.png");
-    /// ```
-    #[inline]
-    #[must_use]
-    pub const fn path(&self) -> &PathBuf {
-        &self.path
-    }
-
-    /// Returns `true` is the file is a directory.
-    ///
-    /// # Examples
-    /// Suppose you have this tree file, with `passport.png` selected inside `file_explorer`:
-    /// ```plaintext
-    /// /
-    /// ├── .git
-    /// └── Documents
-    ///     ├── passport.png  <- selected
-    ///     └── resume.pdf
-    /// ```
-    /// You can know if the selected file is a directory like this:
-    /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
-    /// let file_explorer = FileExplorer::new().unwrap();
-    ///
-    /// /* user select `password.png` */
-    ///
-    /// let file = file_explorer.current();
-    /// assert_eq!(file.is_dir(), false);
-    ///
-    /// /* user select `Documents` */
-    ///
-    /// let file = file_explorer.current();
-    /// assert_eq!(file.is_dir(), true);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub const fn is_dir(&self) -> bool {
-        self.is_dir
-    }
-
-    /// Returns `true` is the file is a regular file.
-    ///
-    /// # Examples
-    /// Suppose you have this tree file, with `passport.png` selected inside `file_explorer`:
-    /// ```plaintext
-    /// /
-    /// ├── .git
-    /// └── Documents
-    ///     ├── passport.png  <- selected
-    ///     └── resume.pdf
-    /// ```
-    /// You can know if the selected file is a directory like this:
-    /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
-    /// let file_explorer = FileExplorer::new().unwrap();
-    ///
-    /// /* user select `password.png` */
-    ///
-    /// let file = file_explorer.current();
-    /// assert_eq!(file.is_file(), true);
-    ///
-    /// /* user select `Documents` */
-    ///
-    /// let file = file_explorer.current();
-    /// assert_eq!(file.is_file(), false);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn is_file(&self) -> bool {
-        self.file_type.is_some_and(|f| f.is_file())
-    }
-
-    /// Returns `true` if the file or directory is hidden.
-    ///
-    /// # Examples
-    /// Suppose you have this tree file, with `passport.png` selected inside `file_explorer`:
-    /// ```plaintext
-    /// /
-    /// ├── .git
-    /// └── Documents
-    ///     ├── passport.png  <- selected
-    ///     └── resume.pdf
-    /// ```
-    /// You can know if the selected file or directory is hidden like this:
-    /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
-    /// let mut file_explorer = FileExplorer::new().unwrap();
-    /// file_explorer.set_show_hidden(true);
-    ///
-    /// /* user select `password.png` */
-    ///
-    /// let file = file_explorer.current();
-    /// assert_eq!(file.is_hidden(), false);
-    ///
-    /// /* user select `.git` */
-    ///
-    /// let file = file_explorer.current();
-    /// assert_eq!(file.is_hidden(), true);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn is_hidden(&self) -> bool {
-        self.is_hidden
-    }
-
-    /// Returns the [`FileType`](https://doc.rust-lang.org/stable/std/fs/struct.FileType.html) of the file, when available.
-    ///
-    /// # Examples
-    /// Suppose you have this tree file, with `passport.png` selected inside `file_explorer`:
-    /// ```plaintext
-    /// /
-    /// ├── .git
-    /// └── Documents
-    ///     ├── passport.png  <- selected
-    ///     └── resume.pdf
-    /// ```
-    /// You can know if the selected file is a directory like this:
-    /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
-    /// let file_explorer = FileExplorer::new().unwrap();
-    ///
-    /// /* user select `password.png` */
-    ///
-    /// let file = file_explorer.current();
-    /// assert_eq!(file.file_type().unwrap().is_dir(), false);
-    ///
-    /// /* user select `Documents` */
-    ///
-    /// let file = file_explorer.current();
-    /// assert_eq!(file.file_type().unwrap().is_dir(), true);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub const fn file_type(&self) -> Option<FileType> {
-        self.file_type
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -946,7 +688,7 @@ mod tests {
     fn test_hidden_files_are_ignored() -> Result<()> {
         let root = build_tmp_file_system()?;
 
-        let mut explorer = FileExplorer::new_in(root.path())?;
+        let mut explorer = FileExplorerBuilder::default().working_dir(root.path()).build()?;
         assert_eq!(explorer.files().len(), 2);
 
         explorer.set_show_hidden(true)?;
