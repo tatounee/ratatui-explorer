@@ -167,7 +167,7 @@ impl Theme {
     /// Behind the scene, it use the [`List::block`](https://docs.rs/ratatui/latest/ratatui/widgets/struct.List.html#method.block) method. See its documentation for more.
     ///
     /// You can use [`Theme::with_title_top`](#method.title_top) and [`Theme::with_title_bottom`](#method.title_bottom)
-    /// to add customizable titles to the block.
+    /// to add dynamic titles to the block.
     ///
     /// # Example
     /// ```no_run
@@ -269,7 +269,7 @@ impl Theme {
 
     /// Set the symbol used to highlight the selected item.
     ///
-    /// Behind the scene, it use the [List::highlight_symbol](https://docs.rs/ratatui/latest/ratatui/widgets/struct.List.html#method.highlight_symbol) method. See its documentation for more.
+    /// Behind the scene, it use the [`List::highlight_symbol`](https://docs.rs/ratatui/latest/ratatui/widgets/struct.List.html#method.highlight_symbol) method. See its documentation for more.
     ///
     /// # Example
     /// ```no_run
@@ -302,7 +302,7 @@ impl Theme {
 
     /// Sets the number of items around the currently selected item that should be kept visible.
     ///
-    /// /// Behind the scene, it use the [List::scroll_padding](https://docs.rs/ratatui/latest/ratatui/widgets/struct.List.html#method.scroll_padding) method. See its documentation for more.
+    /// /// Behind the scene, it use the [`List::scroll_padding`](https://docs.rs/ratatui/latest/ratatui/widgets/struct.List.html#method.scroll_padding) method. See its documentation for more.
     ///
     /// # Example
     /// ```no_run
@@ -328,7 +328,7 @@ impl Theme {
     ///
     /// # Example
     /// ```no_run
-    /// use ratatui::prelude::*;
+    /// # use ratatui::prelude::*;
     /// # use ratatui_explorer::{FileExplorer, Theme};
     /// let theme = Theme::default()
     ///     .with_title_top(|file_explorer: &FileExplorer| {
