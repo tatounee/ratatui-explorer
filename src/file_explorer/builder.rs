@@ -46,7 +46,7 @@ impl FileExplorerBuilder {
 
     /// Set the theme for the `FileExplorer`.
     /// If not set, it defaults to [`Theme::new`](Theme::new).
-    /// 
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -56,7 +56,7 @@ impl FileExplorerBuilder {
     ///     .theme(Theme::default().add_default_title())
     ///     .build()
     ///     .unwrap();
-    /// ```    
+    /// ```
     pub fn theme(mut self, theme: Theme) -> Self {
         self.theme = Some(theme);
         self
@@ -94,7 +94,7 @@ impl FileExplorerBuilder {
     /// # Errors
     ///
     /// Will return `Err` if the setted working directory can not be listed.
-    /// 
+    ///
     /// Will return `Err` if NO working directory have been setted and current working directory can not be listed.
     /// See [`current_dir`](https://doc.rust-lang.org/stable/std/env/fn.current_dir.html) for more information.
     ///

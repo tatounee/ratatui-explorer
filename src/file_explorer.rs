@@ -78,9 +78,13 @@ impl FileExplorer {
     /// This method initializes a `FileExplorer` with the current working directory.
     /// By default, hidden files are not shown.
     ///
+    /// You can use the [`FileExplorerBuilder`](FileExplorerBuilder) to create a `FileExplorer` with a custom working
+    /// directory, theme, and other options. See its documentation for more information.
+    ///
     /// # Errors
     ///
-    /// Will return `Err` if the current working directory can not be listed. See [`current_dir`](https://doc.rust-lang.org/stable/std/env/fn.current_dir.html) for more information.
+    /// Will return `Err` if the current working directory can not be listed.
+    /// See [`current_dir`](https://doc.rust-lang.org/stable/std/env/fn.current_dir.html) for more information.
     ///
     /// # Examples
     /// Suppose you have this tree file and your current working directory is `/Documents`:
@@ -114,7 +118,8 @@ impl FileExplorer {
     }
 
     /// Build a ratatui widget to render the file explorer. The widget can then
-    /// be rendered with [`Frame::render_widget`](https://docs.rs/ratatui/latest/ratatui/struct.Frame.html#method.render_widget) or [`FrameExt::render_widget_ref`](https://docs.rs/ratatui/latest/ratatui/widgets/trait.FrameExt.html#tymethod.render_widget_ref).
+    /// be rendered with [`Frame::render_widget`](https://docs.rs/ratatui/latest/ratatui/struct.Frame.html#method.render_widget)
+    /// or [`FrameExt::render_widget_ref`](https://docs.rs/ratatui/latest/ratatui/widgets/trait.FrameExt.html#tymethod.render_widget_ref).
     ///
     /// # Examples
     ///
@@ -276,7 +281,7 @@ impl FileExplorer {
     ///
     /// # Errors
     ///
-    /// Will return `Err` if the directory `cwd` can not be listed.
+    /// Will return `Err` if the current working directory can not be listed.
     ///
     /// # Examples
     ///
@@ -322,17 +327,17 @@ impl FileExplorer {
         self.theme = theme;
     }
 
-    /// Sets the selected file or directory index inside the current [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html) of files
-    /// and directories in the file explorer.
+    /// Sets the selected file or directory index inside the current [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html)
+    /// of files and directories in the file explorer.
     ///
     /// The file explorer add the parent directory at the beginning of the
-    /// [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html) of files, so setting the selected index to 0 will select the parent directory
-    /// (if the current working directory not the root directory).
+    /// [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html) of files, so setting the selected index to 0
+    /// will select the parent directory (if the current working directory not the root directory).
     ///
     /// # Panics
     ///
-    /// Panics if `selected` is greater or equal to the number of files (plus the parent directory if it exist) in the current
-    /// working directory.
+    /// Panics if `selected` is greater or equal to the number of files (plus the parent directory if it exist) in the
+    /// current working directory.
     ///
     /// # Examples
     ///
@@ -515,8 +520,8 @@ impl FileExplorer {
         self.show_hidden
     }
 
-    /// Returns the a [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html) of files and directories in the current working directory
-    /// of the file explorer, plus the parent directory if it exist.
+    /// Returns the a [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html) of files and directories in the
+    /// current working directory of the file explorer, plus the parent directory if it exist.
     ///
     /// # Examples
     ///
@@ -545,8 +550,8 @@ impl FileExplorer {
         &self.files
     }
 
-    /// Returns the index of the selected file or directory in the current [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html) of files
-    /// and directories in the current working directory of the file explorer.
+    /// Returns the index of the selected file or directory in the current [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html)
+    /// of files and directories in the current working directory of the file explorer.
     ///
     /// # Examples
     ///
@@ -596,7 +601,8 @@ impl FileExplorer {
     }
 
     /// Get the files and directories in the current working directory and set them in the file explorer.
-    /// It add the parent directory at the beginning of the [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html) of files if it exist.
+    /// It add the parent directory at the beginning of the [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html) 
+    /// of files if it exist.
     fn get_files(working_dir: &Path, show_hidden: bool) -> Result<Vec<File>> {
         let (mut dirs, mut none_dirs): (Vec<_>, Vec<_>) = std::fs::read_dir(working_dir)?
             .filter_map(|entry| {
@@ -732,7 +738,7 @@ mod tests {
     fn test_hidden_files_are_ignored() -> Result<()> {
         let root = build_tmp_file_system()?;
 
-        let mut explorer = FileExplorerBuilder::default().working_dir(root.path()).build()?;
+        let mut explorer = FileExplorerBuilder::build_with_working_dir(root.path())?;
         assert_eq!(explorer.files().len(), 2);
 
         explorer.set_show_hidden(true)?;
