@@ -38,6 +38,7 @@ impl FileExplorerBuilder {
     ///     .working_dir("/Documents")
     ///     .build()
     ///     .unwrap();
+    ///
     /// assert_eq!(file_explorer.cwd().display().to_string(), "/Documents");
     /// ```
     pub fn working_dir<P: Into<PathBuf>>(mut self, working_dir: P) -> Self {
@@ -101,7 +102,7 @@ impl FileExplorerBuilder {
     }
 
     /// Set a filter for the `FileExplorer` to only show files that satisfy the provided predicate.
-    /// If not set, all files are shown. Hidden files are still hidden if `show_hidden` is set to `false`, even if the
+    /// If not set, all files are shown. Hidden files are still hidden if [`show_hidden`](FileExplorerBuilder::show_hidden) is set to `false`, even if the
     /// filter allows them.
     ///
     /// # Examples
@@ -176,13 +177,13 @@ impl FileExplorerBuilder {
     }
 
     /// Shortcut method to create a `FileExplorer` with a custom theme.
-    /// See [`FileExplorerBuilder::theme`] for more information about the theme configuration.
+    /// See [`theme`](FileExplorerBuilder::theme) for more information about the theme configuration.
     pub fn build_with_theme(theme: Theme) -> Result<FileExplorer> {
         Self::default().theme(theme).build()
     }
 
     /// Shortcut method to create a `FileExplorer` with a custom working directory.
-    /// See [`FileExplorerBuilder::working_dir`] for more information about the working directory configuration.
+    /// See [`working_dir`](FileExplorerBuilder::working_dir) for more information about the working directory configuration.
     pub fn build_with_working_dir<P: Into<PathBuf>>(working_dir: P) -> Result<FileExplorer> {
         Self::default().working_dir(working_dir).build()
     }

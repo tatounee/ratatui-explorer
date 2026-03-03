@@ -20,7 +20,7 @@ type Predicate = dyn Fn(&File) -> bool + Send + Sync;
 ///
 /// The `FileExplorer` struct represents a file explorer widget that can be used to navigate
 /// through the file system.
-/// You can obtain a renderable widget from it with the [`widget`](#method.widget) method.
+/// You can obtain a renderable widget from it with the [`widget`](FileExplorer::widget) method.
 /// It provides methods for handling user input from [crossterm](https://crates.io/crates/crossterm),
 /// [termion](https://crates.io/crates/termion) and [termwiz](https://crates.io/crates/termwiz) (depending on what feature is enabled).
 ///
@@ -601,7 +601,7 @@ impl FileExplorer {
     }
 
     /// Get the files and directories in the current working directory and set them in the file explorer.
-    /// It add the parent directory at the beginning of the [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html) 
+    /// It add the parent directory at the beginning of the [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html)
     /// of files if it exist.
     fn get_files(working_dir: &Path, show_hidden: bool) -> Result<Vec<File>> {
         let (mut dirs, mut none_dirs): (Vec<_>, Vec<_>) = std::fs::read_dir(working_dir)?
