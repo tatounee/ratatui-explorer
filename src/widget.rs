@@ -21,7 +21,7 @@ impl WidgetRef for Renderer<'_> {
     {
         let mut state = ListState::default().with_selected(Some(self.0.selected_idx()));
 
-        let highlight_style = if self.0.current().is_dir() {
+        let highlight_style = if self.0.current().is_dir {
             self.0.theme().highlight_dir_style
         } else {
             self.0.theme().highlight_item_style
@@ -57,12 +57,12 @@ impl WidgetRef for Renderer<'_> {
 impl File {
     /// Returns the text with the appropriate style to be displayed for the file.
     fn text(&self, theme: &Theme) -> Text<'_> {
-        let style = if self.is_dir() {
+        let style = if self.is_dir {
             *theme.dir_style()
         } else {
             *theme.item_style()
         };
-        Span::styled(self.name(), style).into()
+        Span::styled(&self.name, style).into()
     }
 }
 

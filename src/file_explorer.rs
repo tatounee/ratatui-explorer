@@ -58,7 +58,7 @@ type Predicate = dyn Fn(&File) -> bool + Send + Sync;
 /// let current_file = file_explorer.current();
 /// let current_working_directory = file_explorer.cwd();
 /// println!("Current Directory: {}", current_working_directory.display());
-/// println!("Name: {}", current_file.name());
+/// println!("Name: {}", current_file.name);
 /// ```
 #[derive(Clone, educe::Educe)]
 #[educe(Debug, PartialEq, Eq, Hash)]
@@ -189,11 +189,11 @@ impl FileExplorer {
     /// /* user select `password.png` */
     ///
     /// file_explorer.handle(Input::Down).unwrap();
-    /// assert_eq!(file_explorer.current().name(), "resume.pdf");
+    /// assert_eq!(file_explorer.current().name, "resume.pdf");
     ///
     /// file_explorer.handle(Input::Up).unwrap();
     /// file_explorer.handle(Input::Up).unwrap();
-    /// assert_eq!(file_explorer.current().name(), "../");
+    /// assert_eq!(file_explorer.current().name, "../");
     ///
     /// file_explorer.handle(Input::Left).unwrap();
     /// assert_eq!(file_explorer.cwd().display().to_string(), "/");
@@ -360,10 +360,10 @@ impl FileExplorer {
     /// // Because the file explorer add the parent directory at the beginning
     /// // of the `Vec` of files, index 0 is indeed the parent directory.
     /// file_explorer.set_selected_idx(0);
-    /// assert_eq!(file_explorer.current().path().display().to_string(), "/");
+    /// assert_eq!(file_explorer.current().path.display().to_string(), "/");
     ///
     /// file_explorer.set_selected_idx(1);
-    /// assert_eq!(file_explorer.current().path().display().to_string(), "/Documents/passport.png");
+    /// assert_eq!(file_explorer.current().path.display().to_string(), "/Documents/passport.png");
     ///
     /// #[test]
     /// #[should_panic]
@@ -399,7 +399,7 @@ impl FileExplorer {
     /// /* user select `password.png` */
     ///
     /// let file = file_explorer.current();
-    /// assert_eq!(file.name(), "passport.png");
+    /// assert_eq!(file.name, "passport.png");
     /// ```
     #[inline]
     #[must_use]
@@ -636,7 +636,7 @@ impl FileExplorer {
                     is_hidden,
                     file_type,
                 };
-                if !show_hidden && file.is_hidden() {
+                if !show_hidden && file.is_hidden {
                     None
                 } else {
                     Some(file)

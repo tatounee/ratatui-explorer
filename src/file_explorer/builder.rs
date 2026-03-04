@@ -70,7 +70,7 @@ impl FileExplorerBuilder {
     ///     .unwrap();
     ///
     /// assert_eq!(file_explorer.cwd().display().to_string(), "/Documents");
-    /// assert_eq!(file_explorer.current().path().display().to_string(), "/Documents/passport.png");
+    /// assert_eq!(file_explorer.current().path.display().to_string(), "/Documents/passport.png");
     /// ```
     pub fn working_file<P: Into<PathBuf>>(mut self, working_file: P) -> Self {
         self.custom_selected = true;
@@ -157,7 +157,7 @@ impl FileExplorerBuilder {
 
         let selected_path = self.cwd.take().unwrap();
         let selected = if self.custom_selected
-            && let Some(local_index) = files.iter().position(|file| *file.path() == selected_path)
+            && let Some(local_index) = files.iter().position(|file| file.path == selected_path)
         {
             local_index
         } else {
@@ -249,7 +249,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(*file_explorer.cwd(), documents_path);
-        assert_eq!(*file_explorer.current().path(), passport_path);
+        assert_eq!(file_explorer.current().path, passport_path);
 
         Ok(())
     }
@@ -266,7 +266,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(*file_explorer.cwd(), root.path());
-        assert_eq!(*file_explorer.current().path(), documents_path);
+        assert_eq!(*file_explorer.current().path, documents_path);
 
         Ok(())
     }

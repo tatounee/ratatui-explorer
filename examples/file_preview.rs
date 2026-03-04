@@ -74,8 +74,8 @@ fn main() -> io::Result<()> {
 fn get_file_content(file: &File) -> io::Result<Cow<'_, str>> {
     // If the path is a file, read its content.
     if file.is_file() {
-        read_to_string(file.path()).map(Into::into)
-    } else if file.is_dir() {
+        read_to_string(&file.path).map(Into::into)
+    } else if file.is_dir {
         Ok("".into())
     } else {
         Ok("<not a regular file>".into())
