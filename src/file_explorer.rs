@@ -29,8 +29,7 @@ type Filter = dyn Fn(File) -> Option<File> + Send + Sync + 'static;
 /// Creating a new `FileExplorer` widget:
 ///
 /// ```no_run
-/// use ratatui_explorer::FileExplorer;
-///
+/// # use ratatui_explorer::FileExplorer;
 /// let file_explorer = FileExplorer::new().unwrap();
 /// let widget = file_explorer.widget();
 /// ```
@@ -41,8 +40,7 @@ type Filter = dyn Fn(File) -> Option<File> + Send + Sync + 'static;
 /// # fn get_event() -> ratatui_explorer::Input {
 /// #   unimplemented!()
 /// # }
-/// use ratatui_explorer::FileExplorer;
-///
+/// # use ratatui_explorer::FileExplorer;
 /// let mut file_explorer = FileExplorer::new().unwrap();
 /// let event = get_event(); // Get the event from the terminal (with crossterm, termion or termwiz)
 /// file_explorer.handle(event).unwrap();
@@ -51,8 +49,7 @@ type Filter = dyn Fn(File) -> Option<File> + Send + Sync + 'static;
 /// Accessing information about the current file selected and or the current working directory:
 ///
 /// ```no_run
-/// use ratatui_explorer::FileExplorer;
-///
+/// # use ratatui_explorer::(FileExplorer);
 /// let file_explorer = FileExplorer::new().unwrap();
 ///
 /// let current_file = file_explorer.current();
@@ -97,8 +94,7 @@ impl FileExplorer {
     /// ```
     /// You can create a new `FileExplorer` like this:
     /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
+    /// # use ratatui_explorer::FileExplorer;
     /// let file_explorer = FileExplorer::new().unwrap();
     /// assert_eq!(file_explorer.cwd().display().to_string(), "/Documents");
     /// ```
@@ -181,8 +177,7 @@ impl FileExplorer {
     /// ```
     /// You can handle input like this:
     /// ```no_run
-    /// use ratatui_explorer::{FileExplorer, Input};
-    ///
+    /// # use ratatui_explorer::{FileExplorer, Input};
     /// let mut file_explorer = FileExplorer::new().unwrap();
     /// file_explorer.set_show_hidden(true);
     ///
@@ -255,8 +250,7 @@ impl FileExplorer {
     /// # Examples
     ///
     /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
+    /// # use ratatui_explorer::FileExplorer;
     /// let mut file_explorer = FileExplorer::new().unwrap();
     ///
     /// file_explorer.set_cwd("/Documents").unwrap();
@@ -289,8 +283,7 @@ impl FileExplorer {
     /// ```
     /// You can create a new `FileExplorer` selecting `passport.png` like this:
     /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
+    /// # use ratatui_explorer::FileExplorer;
     /// let mut file_explorer = FileExplorer::new().unwrap();
     /// file_explorer.set_working_file("/Documents/passport.png").unwrap();
     ///
@@ -338,8 +331,7 @@ impl FileExplorer {
     ///     └── resume.pdf
     /// ```
     /// ```no_run
-    /// use ratatui_explorer::FileExplorerBuilder;
-    ///
+    /// # use ratatui_explorer::FileExplorerBuilder;
     /// let mut file_explorer = FileExplorerBuilder::build_with_working_dir("/").unwrap();
     /// assert_eq!(file_explorer.files().len(), 1); // Only /Documents is shown
     ///
@@ -360,11 +352,12 @@ impl FileExplorer {
     /// If not set, all files are shown. Hidden files are filtered **before** this
     /// filter will be apply.
     ///
-    /// # Examples:
+    /// To remove the filter, use [`remove_filter_map`](FileExplorer::remove_filter_map).
+    ///
+    ///  # Examples:
     ///
     /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
+    /// # use ratatui_explorer::FileExplorer;
     /// const SUPPORTED_FORMATS: [&str; 2] = ["wav", "mp3"];
     ///
     /// // A file explorer for browsing my favorite musics
@@ -391,14 +384,13 @@ impl FileExplorer {
     ///     Some(file)
     /// });
     /// ```
-    /// To remove the filter, use [`remove_filter_map`](FileExplorer::remove_filter_map).
     pub fn set_filter_map(&mut self, f: impl Fn(File) -> Option<File> + Send + Sync + 'static) {
         self.files = self.files.drain(..).filter_map(&f).collect();
         self.filter = Some(Arc::new(f));
         self.selected = 0;
     }
 
-    /// Removes the current filter and returns it if it exist.
+    /// Removes the current filter and returns it if it exists.
     ///
     /// # Errors
     ///
@@ -406,7 +398,7 @@ impl FileExplorer {
     ///
     /// # Examples
     /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
+    /// # use ratatui_explorer::FileExplorer;
     /// let mut file_explorer = FileExplorer::new().unwrap();
     /// file_explorer.set_filter_map(|file| if file.is_dir { Some(file) } else { None });
     ///
@@ -430,8 +422,7 @@ impl FileExplorer {
     /// # Examples
     ///
     /// ```no_run
-    /// use ratatui_explorer::{FileExplorer, Theme};
-    ///
+    /// # use ratatui_explorer::{FileExplorer, Theme};
     /// let mut file_explorer = FileExplorer::new().unwrap();
     ///
     /// file_explorer.set_theme(Theme::default().add_default_title());
@@ -465,8 +456,7 @@ impl FileExplorer {
     /// ```
     /// You can set the selected index like this:
     /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
+    /// # use ratatui_explorer::FileExplorer;
     /// let mut file_explorer = FileExplorer::new().unwrap();
     ///
     /// /* user select `password.png` */
@@ -506,8 +496,7 @@ impl FileExplorer {
     /// ```
     /// You can get the current file like this:
     /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
+    /// # use ratatui_explorer::FileExplorer;
     /// let file_explorer = FileExplorer::new().unwrap();
     ///
     /// /* user select `password.png` */
@@ -535,8 +524,7 @@ impl FileExplorer {
     /// ```
     /// You can get the current working directory like this:
     /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
+    /// # use ratatui_explorer::FileExplorer;
     /// let file_explorer = FileExplorer::new().unwrap();
     ///
     /// /* user select `password.png` */
@@ -557,8 +545,7 @@ impl FileExplorer {
     ///
     /// You can get the current value like this:
     /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
+    /// # use ratatui_explorer::FileExplorer;
     /// let mut file_explorer = FileExplorer::new().unwrap();
     ///
     /// // By default, hidden files are not shown.
@@ -588,8 +575,7 @@ impl FileExplorer {
     /// ```
     /// You can get the [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html) of files and directories like this:
     /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
+    /// # use ratatui_explorer::FileExplorer;
     /// let file_explorer = FileExplorer::new().unwrap();
     ///
     /// /* user select `password.png` */
@@ -618,8 +604,7 @@ impl FileExplorer {
     /// ```
     /// You can get the selected index like this:
     /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
+    /// # use ratatui_explorer::FileExplorer;
     /// let file_explorer = FileExplorer::new().unwrap();
     ///
     /// /* user select `password.png` */
@@ -641,11 +626,10 @@ impl FileExplorer {
     /// # Examples
     ///
     /// ```no_run
-    /// use ratatui_explorer::{FileExplorer, Theme};
-    ///
+    /// # use ratatui_explorer::{FileExplorer, Theme};
     /// let file_explorer = FileExplorer::new().unwrap();
     ///
-    /// assert_eq!(file_explorer.theme(), &Theme::default());
+    /// assert_eq!(file_explorer.theme(), &Theme::new());
     /// ```
     #[inline]
     #[must_use]

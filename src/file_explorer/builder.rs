@@ -32,8 +32,7 @@ impl FileExplorerBuilder {
     /// ```
     /// You can create a new `FileExplorer` like this:
     /// ```no_run
-    /// use ratatui_explorer::FileExplorerBuilder;
-    ///
+    /// # use ratatui_explorer::FileExplorerBuilder;
     /// let file_explorer = FileExplorerBuilder::default()
     ///     .working_dir("/Documents")
     ///     .build()
@@ -62,8 +61,7 @@ impl FileExplorerBuilder {
     /// ```
     /// You can create a new `FileExplorer` selecting `passport.png` like this:
     /// ```no_run
-    /// use ratatui_explorer::FileExplorerBuilder;
-    ///
+    /// # use ratatui_explorer::FileExplorerBuilder;
     /// let file_explorer = FileExplorerBuilder::default()
     ///     .working_file("/Documents/passport.png")
     ///     .build()
@@ -91,8 +89,7 @@ impl FileExplorerBuilder {
     /// # Examples
     ///
     /// ```no_run
-    /// use ratatui_explorer::FileExplorerBuilder;
-    ///
+    /// # use ratatui_explorer::FileExplorerBuilder;
     /// let file_explorer = FileExplorerBuilder::default()
     ///     .filter_map(|file| if file.is_dir { Some(file) } else { None })
     ///     .build()
@@ -111,8 +108,7 @@ impl FileExplorerBuilder {
     /// # Examples
     ///
     /// ```no_run
-    /// use ratatui_explorer::{FileExplorerBuilder, Theme};
-    ///
+    /// # use ratatui_explorer::{FileExplorerBuilder, Theme};
     /// let file_explorer = FileExplorerBuilder::default()
     ///     .theme(Theme::default().add_default_title())
     ///     .build()
