@@ -273,6 +273,54 @@ impl FileExplorer {
         Ok(())
     }
 
+    /// Same as [`set_cwd`](FileExplorer::set_cwd) but will pre-select the file in the working directory.
+    ///
+    /// This method set the working directory to the parent directory of the provided file and select the file in the file explorer.
+    /// You can also select a directory (eg. select `/Documents` inside `/`).
+    ///
+    /// # Examples
+    /// Suppose you have this tree file:
+    /// ```plaintext
+    /// /
+    /// ├── .git
+    /// └── Documents
+    ///     ├── passport.png
+    ///     └── resume.pdf
+    /// ```
+    /// You can create a new `FileExplorer` selecting `passport.png` like this:
+    /// ```no_run
+    /// use ratatui_explorer::FileExplorer;
+    ///
+    /// let mut file_explorer = FileExplorer::new().unwrap();
+    /// file_explorer.set_working_file("/Documents/passport.png").unwrap();
+    ///
+    /// assert_eq!(file_explorer.cwd().display().to_string(), "/Documents");
+    /// assert_eq!(file_explorer.current().path.display().to_string(), "/Documents/passport.png");
+    /// ```
+    #[inline]
+    pub fn set_working_file<P: Into<PathBuf>>(&mut self, working_file: P) -> Result<()> {
+        let working_file = working_file.into();
+
+        let cwd = working_file
+            .parent()
+            .map(|p| p.to_owned())
+            .unwrap_or_else(|| working_file.clone());
+
+        self.files = Self::get_files(&cwd, self.show_hidden, self.filter.as_ref())?;
+
+        let selected_path = working_file;
+        let selected = self
+            .files
+            .iter()
+            .position(|file| file.path == selected_path)
+            .unwrap_or_default();
+
+        self.cwd = cwd;
+        self.selected = selected;
+
+        Ok(())
+    }
+
     /// Sets whether hidden files should be shown in the file explorer.
     ///
     /// # Errors

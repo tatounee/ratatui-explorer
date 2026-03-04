@@ -133,46 +133,25 @@ impl FileExplorerBuilder {
     /// See [`current_dir`](https://doc.rust-lang.org/stable/std/env/fn.current_dir.html) for more information.
     ///
     #[allow(clippy::unwrap_or_default)]
-    pub fn build(mut self) -> Result<FileExplorer> {
+    pub fn build(self) -> Result<FileExplorer> {
         let show_hidden = self.show_hidden;
         let theme = self.theme.unwrap_or_else(Theme::new);
         let filter = self.filter;
 
-        let cwd = if self.custom_selected {
-            // If `working_file` was called, try to get te parent directory
-            let cwd = self.cwd.clone().unwrap();
-            if let Some(parent) = cwd.parent() {
-                parent.to_owned()
-            } else {
-                cwd
-            }
-        } else {
-            // Otherwise, either `cwd` is the working directory, or we use the current directory
-            self.cwd.clone().unwrap_or(std::env::current_dir()?)
-        };
-
-        let mut files = FileExplorer::get_files(&cwd, show_hidden, filter.as_ref())?;
-        if let Some(filter) = &filter {
-            files = files.drain(..).filter_map(|f| filter(f)).collect();
-        }
-
-        let selected_path = self.cwd.take().unwrap();
-        let selected = if self.custom_selected
-            && let Some(local_index) = files.iter().position(|file| file.path == selected_path)
-        {
-            local_index
-        } else {
-            0
-        };
-
-        let file_explorer = FileExplorer {
-            cwd,
-            files,
+        let mut file_explorer = FileExplorer {
+            cwd: PathBuf::new(),
+            files: Vec::new(),
             show_hidden,
-            selected,
+            selected: 0,
             theme,
             filter,
         };
+
+        if self.custom_selected {
+            file_explorer.set_working_file(self.cwd.unwrap())?;
+        } else {
+            file_explorer.set_cwd(self.cwd.clone().unwrap_or(std::env::current_dir()?))?;
+        }
 
         Ok(file_explorer)
     }
