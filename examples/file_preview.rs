@@ -5,9 +5,9 @@ use std::{
 };
 
 use crossterm::{
-    event::{read, Event, KeyCode},
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
+    event::{Event, KeyCode, read},
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use ratatui::crossterm;
 use ratatui::{
@@ -57,10 +57,10 @@ fn main() -> io::Result<()> {
 
         // Read the next event from the terminal.
         let event = read()?;
-        if let Event::Key(key) = event {
-            if key.code == KeyCode::Char('q') {
-                break;
-            }
+        if let Event::Key(key) = event
+            && key.code == KeyCode::Char('q')
+        {
+            break;
         }
         // Handle the event in the file explorer.
         file_explorer.handle(&event)?;

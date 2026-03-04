@@ -8,32 +8,32 @@ impl From<&Event> for Input {
     ///
     /// **Note:** This implementation is only available when the `crossterm` feature is enabled.
     fn from(value: &Event) -> Self {
-        if let Event::Key(key) = value {
-            if matches!(
+        if let Event::Key(key) = value
+            && matches!(
                 key.kind,
                 crossterm::event::KeyEventKind::Press | crossterm::event::KeyEventKind::Repeat
-            ) {
-                let input = match key.code {
-                    KeyCode::Char('j') | KeyCode::Down => Input::Down,
-                    KeyCode::Char('k') | KeyCode::Up => Input::Up,
-                    KeyCode::Left | KeyCode::Backspace => Input::Left,
-                    KeyCode::Char('h') => {
-                        if key.modifiers.contains(KeyModifiers::CONTROL) {
-                            Input::ToggleShowHidden
-                        } else {
-                            Input::Left
-                        }
+            )
+        {
+            let input = match key.code {
+                KeyCode::Char('j') | KeyCode::Down => Input::Down,
+                KeyCode::Char('k') | KeyCode::Up => Input::Up,
+                KeyCode::Left | KeyCode::Backspace => Input::Left,
+                KeyCode::Char('h') => {
+                    if key.modifiers.contains(KeyModifiers::CONTROL) {
+                        Input::ToggleShowHidden
+                    } else {
+                        Input::Left
                     }
-                    KeyCode::Char('l') | KeyCode::Right | KeyCode::Enter => Input::Right,
-                    KeyCode::Home => Input::Home,
-                    KeyCode::End => Input::End,
-                    KeyCode::PageUp => Input::PageUp,
-                    KeyCode::PageDown => Input::PageDown,
-                    _ => Input::None,
-                };
+                }
+                KeyCode::Char('l') | KeyCode::Right | KeyCode::Enter => Input::Right,
+                KeyCode::Home => Input::Home,
+                KeyCode::End => Input::End,
+                KeyCode::PageUp => Input::PageUp,
+                KeyCode::PageDown => Input::PageDown,
+                _ => Input::None,
+            };
 
-                return input;
-            }
+            return input;
         }
 
         Input::None

@@ -6,7 +6,7 @@ use std::{
 
 use ratatui::widgets::WidgetRef;
 
-use crate::{input::Input, widget::Renderer, Theme};
+use crate::{Theme, input::Input, widget::Renderer};
 
 mod builder;
 mod file;
@@ -22,7 +22,7 @@ type Predicate = dyn Fn(&File) -> bool + Send + Sync;
 /// through the file system.
 /// You can obtain a renderable widget from it with the [`widget`](FileExplorer::widget) method.
 /// It provides methods for handling user input from [crossterm](https://crates.io/crates/crossterm),
-/// [termion](https://crates.io/crates/termion) and [termwiz](https://crates.io/crates/termwiz) (depending on what feature is enabled).
+/// [termion](https://crates.io/crates/termion) and [termwiz](https://crates.io/crates/termwiz) or your own backend (depending on what feature is enabled).
 ///
 /// # Examples
 ///
@@ -499,6 +499,7 @@ impl FileExplorer {
     }
 
     /// Indicates whether hidden files are currently visible in the file explorer.
+    ///
     /// # Examples
     ///
     ///
@@ -642,7 +643,7 @@ impl FileExplorer {
                     Some(file)
                 }
             })
-            .partition(File::is_dir);
+            .partition(|file| file.is_dir);
 
         dirs.sort_unstable_by(|f1, f2| f1.name.cmp(&f2.name));
         none_dirs.sort_unstable_by(|f1, f2| f1.name.cmp(&f2.name));
