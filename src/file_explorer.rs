@@ -110,7 +110,7 @@ impl FileExplorer {
             files,
             show_hidden: false,
             selected: 0,
-            theme: Theme::default(),
+            theme: Theme::new(),
             filter: None,
         };
 
