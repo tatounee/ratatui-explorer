@@ -653,6 +653,16 @@ impl FileExplorer {
         &self.theme
     }
 
+    #[allow(missing_docs)]
+    #[inline]
+    #[deprecated(
+        since = "0.3.0",
+        note = "Use `FileExplorerBuilder::build_with_theme` instead"
+    )]
+    pub fn with_theme(theme: Theme) -> Result<FileExplorer> {
+        FileExplorerBuilder::build_with_theme(theme)
+    }
+
     /// Get the files and directories in the current working directory and set them in the file explorer.
     /// It add the parent directory at the beginning of the [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html)
     /// of files if it exist.
