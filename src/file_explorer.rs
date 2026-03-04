@@ -14,7 +14,7 @@ mod file;
 pub use builder::FileExplorerBuilder;
 pub use file::File;
 
-type Predicate = dyn Fn(&File) -> bool + Send + Sync;
+type Filter = dyn Fn(File) -> Option<File> + Send + Sync + 'static;
 
 /// A file explorer that allows browsing and selecting files and directories.
 ///
@@ -69,7 +69,7 @@ pub struct FileExplorer {
     selected: usize,
     theme: Theme,
     #[educe(Debug(ignore), PartialEq(ignore), Hash(ignore))]
-    filter: Option<Arc<Predicate>>,
+    filter: Option<Arc<Filter>>,
 }
 
 impl FileExplorer {
@@ -104,7 +104,7 @@ impl FileExplorer {
     /// ```
     pub fn new() -> Result<FileExplorer> {
         let cwd = std::env::current_dir()?;
-        let files = Self::get_files(&cwd, false)?;
+        let files = Self::get_files(&cwd, false, None)?;
         let file_explorer = Self {
             cwd,
             files,
@@ -265,11 +265,7 @@ impl FileExplorer {
     #[inline]
     pub fn set_cwd<P: Into<PathBuf>>(&mut self, cwd: P) -> Result<()> {
         let cwd = cwd.into();
-        self.files = Self::get_files(&cwd, self.show_hidden)?;
-
-        if let Some(filter) = &self.filter {
-            self.files.retain(|f| filter(f));
-        }
+        self.files = Self::get_files(&cwd, self.show_hidden, self.filter.as_ref())?;
 
         self.cwd = cwd;
         self.selected = 0;
@@ -305,10 +301,80 @@ impl FileExplorer {
     #[inline]
     pub fn set_show_hidden(&mut self, show_hidden: bool) -> Result<()> {
         self.show_hidden = show_hidden;
-        self.files = Self::get_files(&self.cwd, show_hidden)?;
+        self.files = Self::get_files(&self.cwd, show_hidden, self.filter.as_ref())?;
         self.selected = 0;
 
         Ok(())
+    }
+
+    /// Filters and maps the files in the `FileExplorer`.
+    ///
+    /// If not set, all files are shown. Hidden files are filtered **before** this
+    /// filter will be apply.
+    ///
+    /// # Examples:
+    ///
+    /// ```no_run
+    /// use ratatui_explorer::FileExplorer;
+    ///
+    /// const SUPPORTED_FORMATS: [&str; 2] = ["wav", "mp3"];
+    ///
+    /// // A file explorer for browsing my favorite musics
+    /// let mut music_file_explorer = FileExplorer::new().unwrap();
+    /// music_file_explorer.set_filter_map(|file| {
+    ///     let keep = match file.path.extension() {
+    ///         Some(extension) => {
+    ///             let extension = extension.to_str().unwrap_or_default();
+    ///             SUPPORTED_FORMATS.contains(&extension)
+    ///         }
+    ///         None => file.is_dir,
+    ///     };
+    ///
+    ///     if keep { Some(file) } else { None }
+    /// });
+    ///
+    /// // My old terminal only display ASCII :(
+    /// let mut ascii_file_explorer = FileExplorer::new().unwrap();
+    /// ascii_file_explorer.set_filter_map(|mut file| {
+    ///     file.name = file.name.chars()
+    ///         .map(|c| if c.is_ascii() { c } else { '_' })
+    ///         .collect();
+    ///
+    ///     Some(file)
+    /// });
+    /// ```
+    /// To remove the filter, use [`remove_filter_map`](FileExplorer::remove_filter_map).
+    pub fn set_filter_map(&mut self, f: impl Fn(File) -> Option<File> + Send + Sync + 'static) {
+        self.files = self.files.drain(..).filter_map(&f).collect();
+        self.filter = Some(Arc::new(f));
+        self.selected = 0;
+    }
+
+    /// Removes the current filter and returns it if it exist.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if the current working directory can not be listed.
+    ///
+    /// # Examples
+    /// ```no_run
+    /// use ratatui_explorer::FileExplorer;
+    /// let mut file_explorer = FileExplorer::new().unwrap();
+    /// file_explorer.set_filter_map(|file| if file.is_dir { Some(file) } else { None });
+    ///
+    ///  /* Only directories are shown */
+    ///
+    /// let filter = file_explorer.remove_filter_map();
+    ///
+    /// /* All files and directories are shown again */
+    /// ```
+    pub fn remove_filter_map(&mut self) -> Result<Option<Arc<Filter>>> {
+        let filter = self.filter.take();
+
+        self.files = Self::get_files(&self.cwd, self.show_hidden, None)?;
+        self.selected = 0;
+
+        Ok(filter)
     }
 
     /// Sets the theme of the file explorer.
@@ -405,68 +471,6 @@ impl FileExplorer {
     #[must_use]
     pub fn current(&self) -> &File {
         &self.files[self.selected]
-    }
-
-    /// Filters the files in the current working directory based on a predicate.
-    ///
-    /// This method mutates the file explorer by filtering the internal list of files using the provided predicate.
-    ///
-    /// # Examples:
-    ///
-    /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    ///
-    /// const SUPPORTED_FORMATS: [&'static str; 2] = ["wav", "mp3"];
-    ///
-    /// let mut file_explorer = FileExplorer::new().unwrap();
-    /// file_explorer.set_filter(|f| {
-    ///     match f.path().extension() {
-    ///         Some(extension) => {
-    ///             let extension = extension.to_str().unwrap_or_default();
-    ///             SUPPORTED_FORMATS.contains(&extension)
-    ///         }
-    ///         None => f.is_dir()
-    ///     }
-    /// });
-    /// ```
-    /// To reset the filter, you can set the directory again:
-    /// ```no_run
-    /// # use ratatui_explorer::FileExplorer;
-    /// # let mut file_explorer = FileExplorer::new().unwrap();
-    /// let cwd = file_explorer.cwd().clone();
-    /// file_explorer.set_cwd(cwd).unwrap();
-    /// ```
-    pub fn set_filter(&mut self, predicate: impl Fn(&File) -> bool + Send + Sync + 'static) {
-        self.files.retain(|f| predicate(f));
-        self.filter = Some(Arc::new(predicate));
-        self.selected = 0;
-    }
-
-    /// Removes the current filter and returns it if it exist.
-    ///
-    /// # Errors
-    ///
-    /// Will return `Err` if the current working directory can not be listed.
-    ///
-    /// # Examples
-    /// ```no_run
-    /// use ratatui_explorer::FileExplorer;
-    /// let mut file_explorer = FileExplorer::new().unwrap();
-    /// file_explorer.set_filter(|f| f.is_dir());
-    ///
-    ///  /* Only directories are shown */
-    ///
-    /// let filter = file_explorer.remove_filter();
-    ///
-    /// /* All files and directories are shown again */
-    /// ```
-    pub fn remove_filter(&mut self) -> Result<Option<Arc<Predicate>>> {
-        let filter = self.filter.take();
-
-        self.files = Self::get_files(&self.cwd, self.show_hidden)?;
-        self.selected = 0;
-
-        Ok(filter)
     }
 
     /// Returns the current working directory of the file explorer.
@@ -604,7 +608,11 @@ impl FileExplorer {
     /// Get the files and directories in the current working directory and set them in the file explorer.
     /// It add the parent directory at the beginning of the [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html)
     /// of files if it exist.
-    fn get_files(working_dir: &Path, show_hidden: bool) -> Result<Vec<File>> {
+    fn get_files(
+        working_dir: &Path,
+        show_hidden: bool,
+        filter: Option<&Arc<Filter>>,
+    ) -> Result<Vec<File>> {
         let (mut dirs, mut none_dirs): (Vec<_>, Vec<_>) = std::fs::read_dir(working_dir)?
             .filter_map(|entry| {
                 let entry = entry.ok()?;
@@ -639,6 +647,8 @@ impl FileExplorer {
                 };
                 if !show_hidden && file.is_hidden {
                     None
+                } else if let Some(filter) = &filter {
+                    filter(file)
                 } else {
                     Some(file)
                 }
@@ -756,7 +766,7 @@ mod tests {
         let mut explorer = FileExplorerBuilder::build_with_working_dir(documents_path)?;
         assert_eq!(explorer.files().len(), 3);
 
-        explorer.set_filter(|file| file.is_dir);
+        explorer.set_filter_map(|file| if file.is_dir { Some(file) } else { None });
         assert_eq!(explorer.files().len(), 1);
 
         Ok(())
@@ -770,10 +780,10 @@ mod tests {
         let mut explorer = FileExplorerBuilder::build_with_working_dir(documents_path)?;
         assert_eq!(explorer.files().len(), 3);
 
-        explorer.set_filter(|file| file.is_dir);
+        explorer.set_filter_map(|file| if file.is_dir { Some(file) } else { None });
         assert_eq!(explorer.files().len(), 1);
 
-        explorer.remove_filter()?;
+        explorer.remove_filter_map()?;
         assert_eq!(explorer.files().len(), 3);
 
         Ok(())
@@ -785,7 +795,10 @@ mod tests {
         let documents_path = root.path().join("Documents");
 
         let mut explorer = FileExplorerBuilder::build_with_working_dir(documents_path)?;
-        explorer.set_filter(|file| !file.name().ends_with("png"));
+        explorer.set_filter_map(|file| {
+            let keep = !file.name.ends_with("png");
+            if keep { Some(file) } else { None }
+        });
         assert_eq!(explorer.files().len(), 2);
 
         // Exit and re-entre Documents/
@@ -794,6 +807,30 @@ mod tests {
         explorer.handle(Input::Right)?;
 
         assert_eq!(explorer.files().len(), 2);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_filter_mutate_files() -> Result<()> {
+        let root = build_tmp_file_system()?;
+        let documents_path = root.path().join("Documents");
+
+        let mut explorer = FileExplorerBuilder::build_with_working_dir(documents_path)?;
+        explorer.set_filter_map(|mut file| {
+            let is_png = file.name.ends_with("png");
+            if is_png {
+                file.name = file.name.replace("png", "jpg");
+            }
+            Some(file)
+        });
+        assert_eq!(explorer.files().len(), 3);
+
+        let names = ["../", "passport.jpg", "resume.pdf"];
+
+        for (file, name) in explorer.files().iter().zip(names.iter()) {
+            assert_eq!(&file.name, name)
+        }
 
         Ok(())
     }

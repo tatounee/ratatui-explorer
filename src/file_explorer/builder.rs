@@ -1,6 +1,6 @@
 use std::{io::Result, path::PathBuf, sync::Arc};
 
-use super::{File, FileExplorer, Predicate};
+use super::{File, FileExplorer, Filter};
 use crate::Theme;
 
 /// Builder for creating a [`FileExplorer`](FileExplorer).
@@ -13,7 +13,7 @@ pub struct FileExplorerBuilder {
     theme: Option<Theme>,
     show_hidden: bool,
     #[educe(Debug(ignore), PartialEq(ignore), Hash(ignore))]
-    filter: Option<Arc<Predicate>>,
+    filter: Option<Arc<Filter>>,
     custom_selected: bool,
 }
 
@@ -77,6 +77,34 @@ impl FileExplorerBuilder {
         self.working_dir(working_file)
     }
 
+    /// Set whether to show hidden files in the `FileExplorer`. Defaults to `false`.
+    pub fn show_hidden(mut self, show: bool) -> Self {
+        self.show_hidden = show;
+        self
+    }
+
+    /// Set a filter and map for the `FileExplorer`.
+    ///
+    /// If not set, all files are shown. Hidden files are filtered **before** this
+    /// filter will be apply.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use ratatui_explorer::FileExplorerBuilder;
+    ///
+    /// let file_explorer = FileExplorerBuilder::default()
+    ///     .filter_map(|file| if file.is_dir { Some(file) } else { None })
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// /* Only directories are shown */
+    /// ```
+    pub fn filter_map(mut self, f: impl Fn(File) -> Option<File> + Send + Sync + 'static) -> Self {
+        self.filter = Some(Arc::new(f));
+        self
+    }
+
     /// Set the theme for the `FileExplorer`.
     /// If not set, it defaults to [`Theme::new`](Theme::new).
     ///
@@ -95,40 +123,13 @@ impl FileExplorerBuilder {
         self
     }
 
-    /// Set whether to show hidden files in the `FileExplorer`. Defaults to `false`.
-    pub fn show_hidden(mut self, show: bool) -> Self {
-        self.show_hidden = show;
-        self
-    }
-
-    /// Set a filter for the `FileExplorer` to only show files that satisfy the provided predicate.
-    /// If not set, all files are shown. Hidden files are still hidden if [`show_hidden`](FileExplorerBuilder::show_hidden) is set to `false`, even if the
-    /// filter allows them.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// use ratatui_explorer::FileExplorerBuilder;
-    ///
-    /// let file_explorer = FileExplorerBuilder::default()
-    ///     .filter(|f| f.is_dir())
-    ///     .build()
-    ///     .unwrap();
-    ///
-    /// /* Only directories are shown */
-    /// ```
-    pub fn filter(mut self, predicate: impl Fn(&File) -> bool + Send + Sync + 'static) -> Self {
-        self.filter = Some(Arc::new(predicate));
-        self
-    }
-
     /// Build the `FileExplorer` instance based on the provided configuration.
     ///
     /// # Errors
     ///
     /// Will return `Err` if the setted working directory can not be listed.
     ///
-    /// Will return `Err` if NO working directory have been setted and current working directory can not be listed.
+    /// Will return `Err` if **NO** working directory have been setted and current working directory can not be listed.
     /// See [`current_dir`](https://doc.rust-lang.org/stable/std/env/fn.current_dir.html) for more information.
     ///
     #[allow(clippy::unwrap_or_default)]
@@ -150,9 +151,9 @@ impl FileExplorerBuilder {
             self.cwd.clone().unwrap_or(std::env::current_dir()?)
         };
 
-        let mut files = FileExplorer::get_files(&cwd, show_hidden)?;
+        let mut files = FileExplorer::get_files(&cwd, show_hidden, filter.as_ref())?;
         if let Some(filter) = &filter {
-            files.retain(|f| filter(f));
+            files = files.drain(..).filter_map(|f| filter(f)).collect();
         }
 
         let selected_path = self.cwd.take().unwrap();
