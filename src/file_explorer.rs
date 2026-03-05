@@ -354,6 +354,10 @@ impl FileExplorer {
     ///
     /// To remove the filter, use [`remove_filter_map`](FileExplorer::remove_filter_map).
     ///
+    /// # Errors
+    ///
+    /// Will return `Err` if the current working directory can not be listed.
+    ///
     ///  # Examples:
     ///
     /// ```no_run
@@ -372,7 +376,7 @@ impl FileExplorer {
     ///     };
     ///
     ///     if keep { Some(file) } else { None }
-    /// });
+    /// }).unwrap();
     ///
     /// // My old terminal only display ASCII :(
     /// let mut ascii_file_explorer = FileExplorer::new().unwrap();
@@ -382,12 +386,17 @@ impl FileExplorer {
     ///         .collect();
     ///
     ///     Some(file)
-    /// });
+    /// }).unwrap();
     /// ```
-    pub fn set_filter_map(&mut self, f: impl Fn(File) -> Option<File> + Send + Sync + 'static) {
-        self.files = self.files.drain(..).filter_map(&f).collect();
+    pub fn set_filter_map(
+        &mut self,
+        f: impl Fn(File) -> Option<File> + Send + Sync + 'static,
+    ) -> Result<()> {
         self.filter = Some(Arc::new(f));
+        self.files = Self::get_files(&self.cwd, self.show_hidden, self.filter.as_ref())?;
         self.selected = 0;
+
+        Ok(())
     }
 
     /// Removes the current filter and returns it if it exists.
@@ -400,11 +409,11 @@ impl FileExplorer {
     /// ```no_run
     /// # use ratatui_explorer::FileExplorer;
     /// let mut file_explorer = FileExplorer::new().unwrap();
-    /// file_explorer.set_filter_map(|file| if file.is_dir { Some(file) } else { None });
+    /// file_explorer.set_filter_map(|file| if file.is_dir { Some(file) } else { None }).unwrap();
     ///
     ///  /* Only directories are shown */
     ///
-    /// let filter = file_explorer.remove_filter_map();
+    /// let filter = file_explorer.remove_filter_map().unwrap();
     ///
     /// /* All files and directories are shown again */
     /// ```
@@ -808,7 +817,7 @@ mod tests {
         let mut explorer = FileExplorerBuilder::build_with_working_dir(documents_path)?;
         assert_eq!(explorer.files().len(), 3);
 
-        explorer.set_filter_map(|file| if file.is_dir { Some(file) } else { None });
+        explorer.set_filter_map(|file| if file.is_dir { Some(file) } else { None }).unwrap();
         assert_eq!(explorer.files().len(), 1);
 
         Ok(())
@@ -822,7 +831,7 @@ mod tests {
         let mut explorer = FileExplorerBuilder::build_with_working_dir(documents_path)?;
         assert_eq!(explorer.files().len(), 3);
 
-        explorer.set_filter_map(|file| if file.is_dir { Some(file) } else { None });
+        explorer.set_filter_map(|file| if file.is_dir { Some(file) } else { None }).unwrap();
         assert_eq!(explorer.files().len(), 1);
 
         explorer.remove_filter_map()?;
@@ -840,7 +849,7 @@ mod tests {
         explorer.set_filter_map(|file| {
             let keep = !file.name.ends_with("png");
             if keep { Some(file) } else { None }
-        });
+        }).unwrap();
         assert_eq!(explorer.files().len(), 2);
 
         // Exit and re-entre Documents/
@@ -865,7 +874,7 @@ mod tests {
                 file.name = file.name.replace("png", "jpg");
             }
             Some(file)
-        });
+        }).unwrap();
         assert_eq!(explorer.files().len(), 3);
 
         let names = ["../", "passport.jpg", "resume.pdf"];
