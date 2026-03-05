@@ -817,7 +817,9 @@ mod tests {
         let mut explorer = FileExplorerBuilder::build_with_working_dir(documents_path)?;
         assert_eq!(explorer.files().len(), 3);
 
-        explorer.set_filter_map(|file| if file.is_dir { Some(file) } else { None }).unwrap();
+        explorer
+            .set_filter_map(|file| if file.is_dir { Some(file) } else { None })
+            .unwrap();
         assert_eq!(explorer.files().len(), 1);
 
         Ok(())
@@ -831,7 +833,9 @@ mod tests {
         let mut explorer = FileExplorerBuilder::build_with_working_dir(documents_path)?;
         assert_eq!(explorer.files().len(), 3);
 
-        explorer.set_filter_map(|file| if file.is_dir { Some(file) } else { None }).unwrap();
+        explorer
+            .set_filter_map(|file| if file.is_dir { Some(file) } else { None })
+            .unwrap();
         assert_eq!(explorer.files().len(), 1);
 
         explorer.remove_filter_map()?;
@@ -846,10 +850,12 @@ mod tests {
         let documents_path = root.path().join("Documents");
 
         let mut explorer = FileExplorerBuilder::build_with_working_dir(documents_path)?;
-        explorer.set_filter_map(|file| {
-            let keep = !file.name.ends_with("png");
-            if keep { Some(file) } else { None }
-        }).unwrap();
+        explorer
+            .set_filter_map(|file| {
+                let keep = !file.name.ends_with("png");
+                if keep { Some(file) } else { None }
+            })
+            .unwrap();
         assert_eq!(explorer.files().len(), 2);
 
         // Exit and re-entre Documents/
@@ -868,13 +874,15 @@ mod tests {
         let documents_path = root.path().join("Documents");
 
         let mut explorer = FileExplorerBuilder::build_with_working_dir(documents_path)?;
-        explorer.set_filter_map(|mut file| {
-            let is_png = file.name.ends_with("png");
-            if is_png {
-                file.name = file.name.replace("png", "jpg");
-            }
-            Some(file)
-        }).unwrap();
+        explorer
+            .set_filter_map(|mut file| {
+                let is_png = file.name.ends_with("png");
+                if is_png {
+                    file.name = file.name.replace("png", "jpg");
+                }
+                Some(file)
+            })
+            .unwrap();
         assert_eq!(explorer.files().len(), 3);
 
         let names = ["../", "passport.jpg", "resume.pdf"];

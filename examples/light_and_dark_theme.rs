@@ -31,6 +31,7 @@ fn main() -> io::Result<()> {
 
         // Read the next event from the terminal.
         let event = read()?;
+
         // If the user presses `Ctrl + s`, switch the theme.
         // If the user presses `Ctrl + q`, quit the application.
         if let Event::Key(key) = event

@@ -84,7 +84,6 @@ fn get_file_content(file: &File) -> io::Result<Cow<'_, str>> {
 
 fn get_theme() -> Theme {
     Theme::default()
-        .with_block(Block::default().borders(Borders::ALL))
         .with_dir_style(
             Style::default()
                 .fg(Color::White)
