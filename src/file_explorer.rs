@@ -49,7 +49,7 @@ type Filter = dyn Fn(File) -> Option<File> + Send + Sync + 'static;
 /// Accessing information about the current file selected and or the current working directory:
 ///
 /// ```no_run
-/// # use ratatui_explorer::(FileExplorer);
+/// # use ratatui_explorer::FileExplorer;
 /// let file_explorer = FileExplorer::new().unwrap();
 ///
 /// let current_file = file_explorer.current();
