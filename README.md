@@ -3,6 +3,7 @@
 [ratatui-explorer](https://crates.io/crates/ratatui-explorer) is a simple library for creating file explorers for [ratatui](https://github.com/ratatui-org/ratatui).
 
 Features:
+
 - File explorer functionality.
 - Input handling (from [crossterm](https://docs.rs/crossterm/latest/crossterm/), [termion](https://docs.rs/termion/latest/termion/), [termwiz](https://docs.rs/termwiz/latest/termwiz/) and your own backend).
 - Customizable widget theming.
@@ -12,8 +13,8 @@ Features:
 Run `cargo run --example` to try the different example available.
 
 ## [Basic usage](examples/basic.rs)
-The simplest use of [ratatui-explorer](https://crates.io/crates/ratatui-explorer) with the [crossterm](https://docs.rs/crossterm/latest/crossterm/) backend.
 
+The simplest use of [ratatui-explorer](https://crates.io/crates/ratatui-explorer) with the [crossterm](https://docs.rs/crossterm/latest/crossterm/) backend.
 
 ```shell
 cargo run --example basic
@@ -23,18 +24,20 @@ cargo run --example basic
 
 ---
 
-## [Light and dark theme](examples/light_and_dark_theme.rs)
-Switching custom themes while running.
+## [Mutate and filter](examples/filter_by_size.rs)
+
+Filter showed files and customize how threy are been displayed.
 
 ```shell
-cargo run --example light_and_dark_theme
+cargo run --example file_preview
 ```
 
-![theme switching demonstration](https://raw.githubusercontent.com/tatounee/ratatui-explorer/master/assets/light_and_dark_theme.gif)
+![filter demonstration](https://raw.githubusercontent.com/tatounee/ratatui-explorer/master/assets/filter_by_size.gif)
 
 ---
 
 ## [File preview](examples/file_preview.rs)
+
 Adapt the interface depending on the selected file.
 
 ```shell
@@ -43,13 +46,29 @@ cargo run --example file_preview
 
 ![file preview demonstration](https://raw.githubusercontent.com/tatounee/ratatui-explorer/master/assets/file_preview.gif)
 
+---
+
+## [Light and dark theme](examples/light_and_dark_theme.rs)
+
+Switching custom themes while running.
+
+```shell
+cargo run --example light_and_dark_theme
+```
+
+![theme switching demonstration](https://raw.githubusercontent.com/tatounee/ratatui-explorer/master/assets/light_and_dark_theme.gif)
+s
 
 # Basic usage
+
 Install the libraries in your `Cargo.toml` file:
+
 ```plaintext
 cargo add ratatui ratatui-explorer crossterm
 ```
+
 Then inside your `main.rs` file:
+
 ```rust no_run
 use std::io::{self, stdout};
 
@@ -97,7 +116,9 @@ fn main() -> io::Result<()> {
 ```
 
 ## Customizing the theme
+
 You can customize the theme of the file explorer widget by using the `Theme` struct.
+
 ```rust
 use ratatui::{prelude::*, widgets::*};
 use ratatui_explorer::Theme;
@@ -117,15 +138,15 @@ The following bindings are used by default for [crossterm](https://docs.rs/cross
 [termion](https://docs.rs/termion/latest/termion/) and [termwiz](https://docs.rs/termwiz/latest/termwiz/).
 
 | Binding                           | Action                                     |
-|-----------------------------------|--------------------------------------------|
+| --------------------------------- | ------------------------------------------ |
 | `j`, `<DownArrow>`                | Move the selection down                    |
 | `k`, `<UpArrow>`                  | Move the selection up                      |
 | `h`, `<LeftArrow>`, `<Backspace>` | Go to the parent directory                 |
-| `l`, `<RightArrow>`, `<Enter>`    | Go to the child directory*                 |
+| `l`, `<RightArrow>`, `<Enter>`    | Go to the child directory\*                |
 | `Home`                            | Select the first entry                     |
 | `End`                             | Select the last entry                      |
 | `PageUp`                          | Scroll the selection up                    |
 | `PageDown`                        | Scroll the selection down                  |
 | `<Ctrl> + h      `                | Toggle between showing hidden files or not |
 
-_*if the selected item is a directory_
+_\*if the selected item is a directory_

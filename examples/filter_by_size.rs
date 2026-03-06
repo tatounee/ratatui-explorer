@@ -25,11 +25,11 @@ fn main() -> io::Result<()> {
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
 
     let show_all_file = Arc::new(Mutex::new(true));
-    let stats = Arc::clone(&show_all_file);
+    let status = Arc::clone(&show_all_file);
 
-    // Create a new file explorer with the default theme and titles showing the current stats of the filter.
+    // Create a new file explorer with the default theme and titles showing the current status of the filter.
     let mut file_explorer = FileExplorerBuilder::default()
-        .theme(get_theme(stats))
+        .theme(get_theme(status))
         .filter_map(|file| filter_hight_volume(file, 0)) // Add our filter to the file explorer
         .build()?;
 
@@ -84,13 +84,13 @@ fn filter_hight_volume(mut file: File, min_size: u64) -> Option<File> {
     if size < min_size {
         None
     } else {
-        let size = format!("({size})");
-        file.name = format!("{:<7} {}", size, file.name);
+        let size = format!("{size}B");
+        file.name = format!("{:>6}  {}", size, file.name);
         Some(file)
     }
 }
 
-fn get_theme(stats: Arc<Mutex<bool>>) -> Theme {
+fn get_theme(status: Arc<Mutex<bool>>) -> Theme {
     let green_style: Style = Style::default().fg(Color::Green);
 
     Theme::default()
@@ -100,17 +100,13 @@ fn get_theme(stats: Arc<Mutex<bool>>) -> Theme {
                 .style(Style::default().fg(Color::LightGreen)),
         )
         .with_dir_style(green_style.add_modifier(Modifier::BOLD))
-        .with_highlight_dir_style(
-            green_style
-                .add_modifier(Modifier::BOLD)
-                .bg(Color::LightGreen),
-        )
+        .with_highlight_dir_style(green_style.add_modifier(Modifier::BOLD).bg(Color::DarkGray))
         .with_item_style(green_style)
-        .with_highlight_item_style(green_style.bg(Color::LightGreen))
+        .with_highlight_item_style(green_style.bg(Color::DarkGray))
         .add_default_title()
         .with_title_bottom(|_| " q Quit | t Toggle filter ".into())
         .with_title_top(move |_| {
-            if *stats.lock().unwrap() {
+            if *status.lock().unwrap() {
                 Line::from(format!(" filter: OFF ({}kiB) ", MIN_SIZE >> 8))
                     .style(Style::default().fg(Color::Red))
                     .right_aligned()
