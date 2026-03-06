@@ -712,13 +712,20 @@ impl FileExplorer {
         let files = if let Some(parent) = working_dir.parent() {
             let mut files = Vec::with_capacity(1 + dirs.len() + none_dirs.len());
 
-            files.push(File {
+            let parent = File {
                 name: "../".to_owned(),
                 path: parent.to_path_buf(),
                 is_dir: true,
                 is_hidden: false,
                 file_type: None,
-            });
+            };
+            if let Some(filter) = &filter {
+                if let Some(parent) = filter(parent) {
+                    files.push(parent);
+                }
+            } else {
+                files.push(parent);
+            }
 
             files.extend(dirs);
             files.extend(none_dirs);
@@ -810,7 +817,7 @@ mod tests {
     }
 
     #[test]
-    fn test_appling_filter_hide_files() -> Result<()> {
+    fn test_apply_filter_hide_files() -> Result<()> {
         let root = build_tmp_file_system()?;
         let documents_path = root.path().join("Documents");
 
@@ -890,6 +897,24 @@ mod tests {
         for (file, name) in explorer.files().iter().zip(names.iter()) {
             assert_eq!(&file.name, name)
         }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_filter_operate_on_parent() -> Result<()> {
+        let root = build_tmp_file_system()?;
+        let documents_path = root.path().join("Documents");
+
+        let mut explorer = FileExplorerBuilder::build_with_working_dir(documents_path)?;
+        explorer
+            .set_filter_map(|file| if file.is_dir { None } else { Some(file) })
+            .unwrap();
+
+        assert_eq!(explorer.files().len(), 2);
+
+        explorer.remove_filter_map()?;
+        assert_eq!(explorer.files().len(), 3);
 
         Ok(())
     }
