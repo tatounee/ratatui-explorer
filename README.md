@@ -10,7 +10,7 @@ Features:
 
 # Examples
 
-Run `cargo run --example` to try the different example available.
+Run `cargo run --example` to try the different examples available.
 
 ## [Basic usage](examples/basic.rs)
 
@@ -26,7 +26,7 @@ cargo run --example basic
 
 ## [Mutate and filter](examples/filter_by_size.rs)
 
-Filter showed files and customize how threy are been displayed.
+Filter showed files and customize how they are displayed.
 
 ```shell
 cargo run --example file_preview
@@ -57,7 +57,6 @@ cargo run --example light_and_dark_theme
 ```
 
 ![theme switching demonstration](https://raw.githubusercontent.com/tatounee/ratatui-explorer/master/assets/light_and_dark_theme.gif)
-s
 
 # Basic usage
 

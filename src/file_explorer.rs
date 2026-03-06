@@ -46,7 +46,7 @@ type Filter = dyn Fn(File) -> Option<File> + Send + Sync + 'static;
 /// file_explorer.handle(event).unwrap();
 /// ```
 ///
-/// Accessing information about the current file selected and or the current working directory:
+/// Accessing information about the current file selected and/or the current working directory:
 ///
 /// ```no_run
 /// # use ratatui_explorer::FileExplorer;
