@@ -742,7 +742,7 @@ mod tests {
     use super::*;
 
     use std::fs::{self, File};
-    use tempdir::TempDir;
+    use tempfile::TempDir;
 
     /// Build this temporary file system:
     /// ```plaintext
@@ -754,7 +754,7 @@ mod tests {
     ///       └── resume.pdf
     /// ```
     fn build_tmp_file_system() -> Result<TempDir> {
-        let root = TempDir::new("root")?;
+        let root = TempDir::new()?;
 
         let git_path = root.path().join(".git");
         let documents_path = root.path().join("Documents");
@@ -781,7 +781,7 @@ mod tests {
 
     #[test]
     fn test_set_cwd_does_not_change_displayed_path_on_failure() -> Result<()> {
-        let tmp_dir = TempDir::new("cwd_does_not_change_on_failure")?;
+        let tmp_dir = TempDir::new()?;
         let does_not_exist_path = tmp_dir.path().join("does_not_exist");
         assert!(!does_not_exist_path.exists());
 

@@ -30,7 +30,7 @@ termion = ["ratatui/termion"]
 termwiz = ["ratatui/termwiz"]
 
 [dev-dependencies]
-tempdir = "0.3.7"
+tempfile = "3.26.0"
 
 [package.metadata.docs.rs]
 cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]

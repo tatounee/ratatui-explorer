@@ -176,7 +176,7 @@ mod tests {
     use super::*;
 
     use std::fs::{self, File};
-    use tempdir::TempDir;
+    use tempfile::TempDir;
 
     /// Build this temporary file system:
     /// ```plaintext
@@ -188,7 +188,7 @@ mod tests {
     ///       └── resume.pdf
     /// ```
     fn build_tmp_file_system() -> Result<TempDir> {
-        let root = TempDir::new("root")?;
+        let root = TempDir::new()?;
 
         let git_path = root.path().join(".git");
         let documents_path = root.path().join("Documents");
