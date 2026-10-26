@@ -48,6 +48,18 @@ cargo run --example file_preview
 
 ---
 
+## [Marking multiple files](examples/marks.rs)
+
+Ability to mark multiple files, for example for an "open multiple files" feature.
+
+```shell
+cargo run --example marks
+```
+
+![marking multiple files demonstration](https://raw.githubusercontent.com/tatounee/ratatui-explorer/master/assets/marks.gif)
+
+---
+
 ## [Light and dark theme](examples/light_and_dark_theme.rs)
 
 Switching custom themes while running.

@@ -27,7 +27,7 @@ pub struct File {
     /// ```
     pub name: String,
 
-    /// Returns the path of the file or directory.
+    /// The absolute path to the file or directory.
     ///
     /// # Examples
     /// Suppose you have this tree file, with `passport.png` selected inside `file_explorer`:

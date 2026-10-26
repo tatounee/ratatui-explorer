@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     io::Result,
     path::{Path, PathBuf},
     sync::Arc,
@@ -15,6 +16,21 @@ pub use builder::FileExplorerBuilder;
 pub use file::File;
 
 type Filter = dyn Fn(File) -> Option<File> + Send + Sync + 'static;
+type MarkCondition = dyn Fn(&File) -> bool + Send + Sync + 'static;
+
+/// Outcome of marking/unmarking files based on user input.
+///
+/// Not used for explicit file marking.
+#[derive(Clone, Copy, educe::Educe)]
+#[educe(Debug, PartialEq, Eq)]
+pub enum MarkOutcome {
+    /// The file has been marked.
+    Marked,
+    /// The file has been unmarked.
+    Unmarked,
+    /// The file has not been marked or unmarked since it did not pass the `FileExplorer::mark_condition`.
+    Filtered,
+}
 
 /// A file explorer that allows browsing and selecting files and directories.
 ///
@@ -64,9 +80,16 @@ pub struct FileExplorer {
     files: Vec<File>,
     show_hidden: bool,
     selected: usize,
+    marked_counter: usize,
+    #[educe(PartialEq(ignore), Hash(ignore))]
+    marked: HashMap<PathBuf, (usize, File)>,
     theme: Theme,
     #[educe(Debug(ignore), PartialEq(ignore), Hash(ignore))]
     filter: Option<Arc<Filter>>,
+    /// A filter telling whether marking a file is possible. No marking will be possible without a
+    /// filter.
+    #[educe(Debug(ignore), PartialEq(ignore), Hash(ignore))]
+    mark_condition: Option<Arc<MarkCondition>>,
 }
 
 impl FileExplorer {
@@ -106,8 +129,11 @@ impl FileExplorer {
             files,
             show_hidden: false,
             selected: 0,
+            marked_counter: 0,
+            marked: HashMap::new(),
             theme: Theme::new(),
             filter: None,
+            mark_condition: None,
         };
 
         Ok(file_explorer)
@@ -220,6 +246,9 @@ impl FileExplorer {
             Input::PageDown => {
                 self.selected = (self.selected + SCROLL_COUNT).min(self.files.len() - 1);
             }
+            Input::Mark => {
+                self.toggle_marked_current();
+            }
             Input::Left => {
                 let parent = self.cwd.parent();
 
@@ -239,6 +268,61 @@ impl FileExplorer {
         }
 
         Ok(())
+    }
+
+    /// Mark/unmark the file.
+    ///
+    /// If `mark_condition` is defined, it will be checked.
+    #[inline]
+    pub fn toggle_marked_current(&mut self) -> MarkOutcome {
+        let current = self.current();
+
+        let eligible = match self.mark_condition {
+            Some(ref cond) => cond(current),
+            None => false,
+        };
+        if !eligible {
+            return MarkOutcome::Filtered;
+        }
+
+        if self.is_marked(&self.current().path) {
+            let path = self.current().path.clone();
+            self.unmark_file(&path);
+            MarkOutcome::Unmarked
+        } else {
+            let file = self.current().clone();
+            self.mark_file(file);
+            MarkOutcome::Marked
+        }
+    }
+
+    /// Marks the file by its path (presumed absolute, since that's how paths in File structs are).
+    ///
+    /// Returns a None option if this path was not marked before, or if it was, returns the previous
+    /// version of the File marked for this path.
+    #[inline]
+    pub fn mark_file(&mut self, file: File) -> Option<File> {
+        let previous = self
+            .marked
+            .insert(file.path.clone(), (self.marked_counter, file));
+        self.marked_counter += 1;
+        previous.map(|(_, file)| file)
+    }
+
+    /// Un-marks file by absolute path.
+    ///
+    /// Returns an option containing the previously marked File for this path if there was one.
+    /// Otherwise, returns None.
+    #[inline]
+    pub fn unmark_file(&mut self, absolute_path: &Path) -> Option<File> {
+        let previous = self.marked.remove(absolute_path);
+        previous.map(|(_, file)| file)
+    }
+
+    /// Un-marks all marked files.
+    #[inline]
+    pub fn unmark_all(&mut self) {
+        self.marked.clear();
     }
 
     /// Sets the current working directory of the file explorer.
@@ -441,6 +525,31 @@ impl FileExplorer {
         self.theme = theme;
     }
 
+    /// Set a new mark condition.
+    ///
+    /// Without a mark condition `FileExplorer::toggle_marked_current` won't mark or unmark **any**
+    /// files. Explicit calls to `FileExplorer::mark_file` and `FileExplorer::unmark_file` will
+    /// still work.
+    ///
+    /// ```no_run
+    /// # use ratatui_explorer::{FileExplorer};
+    /// let mut file_explorer = FileExplorer::new().unwrap();
+    ///
+    /// file_explorer.set_mark_condition(|file| file.is_file());
+    /// ```
+    pub fn set_mark_condition(&mut self, f: impl Fn(&File) -> bool + Send + Sync + 'static) {
+        self.mark_condition = Some(Arc::new(f));
+    }
+
+    /// Remove mark condition if set.
+    ///
+    /// Without a mark condition `FileExplorer::toggle_marked_current` won't mark or unmark **any**
+    /// files. Explicit calls to `FileExplorer::mark_file` and `FileExplorer::unmark_file` will
+    /// still work.
+    pub fn remove_mark_condition(&mut self) {
+        self.mark_condition = None
+    }
+
     /// Sets the selected file or directory index inside the current [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html)
     /// of files and directories in the file explorer.
     ///
@@ -598,6 +707,37 @@ impl FileExplorer {
         &self.files
     }
 
+    /// Checks if the path has been marked in the file browser.
+    ///
+    /// `path` should be absolute.
+    pub fn is_marked(&self, path: &Path) -> bool {
+        self.marked.contains_key(path)
+    }
+
+    /// Returns the number of marked files.
+    pub fn marked_count(&self) -> usize {
+        self.marked.len()
+    }
+
+    /// Iterates over all marked files in an undefined order.
+    ///
+    /// For files in submission order, check `FileExplorer::marked`.
+    #[inline]
+    pub fn iter_marked_unordered(&self) -> impl Iterator<Item = &File> {
+        self.marked.values().map(|(_, file)| file)
+    }
+
+    /// Produces a Vec of marked files, in submission order.
+    pub fn marked(&self) -> Vec<&File> {
+        let mut entries: Vec<(usize, &File)> = self
+            .marked
+            .values()
+            .map(|(order, file)| (*order, file))
+            .collect();
+        entries.sort_unstable_by_key(|(order, _)| *order);
+        entries.into_iter().map(|(_, file)| file).collect()
+    }
+
     /// Returns the index of the selected file or directory in the current [`Vec`](https://doc.rust-lang.org/stable/std/vec/struct.Vec.html)
     /// of files and directories in the current working directory of the file explorer.
     ///
@@ -668,7 +808,7 @@ impl FileExplorer {
             .filter_map(|entry| {
                 let entry = entry.ok()?;
                 let path = entry.path();
-                let metadata = path.metadata().ok();
+                let metadata = path.symlink_metadata().ok();
                 let file_type = metadata.as_ref().map(|f| f.file_type());
                 let is_dir = file_type.is_some_and(|f| f.is_dir());
 
@@ -756,9 +896,10 @@ mod tests {
     /// <unknow>
     /// └ root
     ///   ├── .git
-    ///   └── Documents
-    ///       ├── passport.png
-    ///       └── resume.pdf
+    ///   ├── Documents
+    ///   │   ├── passport.png
+    ///   │   └── resume.pdf
+    ///   └── source.rs
     /// ```
     fn build_tmp_file_system() -> Result<TempDir> {
         let root = TempDir::new()?;
@@ -767,13 +908,32 @@ mod tests {
         let documents_path = root.path().join("Documents");
         let passport_path = root.path().join("Documents/passport.png");
         let resume_path = root.path().join("Documents/resume.pdf");
+        let source_path = root.path().join("source.rs");
 
         fs::create_dir(git_path)?;
         fs::create_dir(documents_path)?;
         File::create(passport_path)?;
         File::create(resume_path)?;
+        File::create(source_path)?;
 
         Ok(root)
+    }
+
+    fn make_explorer() -> Result<FileExplorer> {
+        let root = build_tmp_file_system()?;
+        let documents_path = root.path().join("Documents");
+
+        FileExplorerBuilder::build_with_working_dir(documents_path)
+    }
+
+    fn make_explorer_with_3_marks() -> Result<FileExplorer> {
+        let mut explorer = make_explorer()?;
+        explorer.set_mark_condition(|_| true);
+        for _ in 0..3 {
+            assert_eq!(explorer.toggle_marked_current(), MarkOutcome::Marked);
+            explorer.selected += 1;
+        }
+        Ok(explorer)
     }
 
     #[test]
@@ -808,10 +968,10 @@ mod tests {
         let root = build_tmp_file_system()?;
 
         let mut explorer = FileExplorerBuilder::build_with_working_dir(root.path())?;
-        assert_eq!(explorer.files().len(), 2);
+        assert_eq!(explorer.files().len(), 3);
 
         explorer.set_show_hidden(true)?;
-        assert_eq!(explorer.files().len(), 3);
+        assert_eq!(explorer.files().len(), 4);
 
         Ok(())
     }
@@ -915,6 +1075,224 @@ mod tests {
 
         explorer.remove_filter_map()?;
         assert_eq!(explorer.files().len(), 3);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_mark_toggle() -> Result<()> {
+        let mut explorer = make_explorer()?;
+        explorer.set_mark_condition(|_| true);
+
+        let current = explorer.current().clone();
+
+        assert_eq!(explorer.marked().len(), 0);
+        assert_eq!(explorer.marked_count(), 0);
+        assert!(!explorer.is_marked(&current.path));
+
+        // Mark one (toggle on)
+        let outcome = explorer.toggle_marked_current();
+        assert_eq!(outcome, MarkOutcome::Marked);
+
+        // Check the results of `FileExplorer::*marked*` method family
+        assert!(explorer.is_marked(&current.path));
+        let marked = explorer.marked();
+        assert_eq!(marked.len(), 1);
+        assert_eq!(explorer.marked_count(), 1);
+        assert_eq!(marked[0], &current);
+
+        assert_eq!(&current, explorer.current(), "current file unchanged");
+
+        // Unmark the same file (toggle off)
+        let outcome = explorer.toggle_marked_current();
+        assert_eq!(outcome, MarkOutcome::Unmarked);
+
+        assert_eq!(explorer.marked().len(), 0);
+        assert_eq!(explorer.marked_count(), 0);
+        assert!(!explorer.is_marked(&current.path));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_mark_unmark_explicit() -> Result<()> {
+        let mut explorer = make_explorer()?;
+        explorer.set_mark_condition(|_| true);
+
+        let files = explorer.files().clone();
+
+        // Mark files by name
+        assert_eq!(explorer.mark_file(files[0].clone()), None);
+        assert_eq!(explorer.marked_count(), 1);
+        assert_eq!(explorer.mark_file(files[1].clone()), None);
+        assert_eq!(explorer.marked_count(), 2);
+
+        // Mark same files again, this time with different metadata (e.g. let's say it changed on disk)
+        let mut file1b = files[0].clone();
+        let mut file2b = files[1].clone();
+        file1b.is_dir = !file1b.is_dir;
+        file2b.is_dir = !file2b.is_dir;
+
+        let prev_1 = explorer.mark_file(file1b.clone());
+        let prev_2 = explorer.mark_file(file2b.clone());
+        assert_eq!(explorer.marked_count(), 2);
+        assert_eq!(prev_1, Some(files[0].clone()));
+        assert_eq!(prev_2, Some(files[1].clone()));
+        assert_ne!(prev_1, Some(file1b.clone()));
+        assert_ne!(prev_2, Some(file2b.clone()));
+
+        // Unmark files by path
+        assert_eq!(explorer.unmark_file(&files[0].path), Some(file1b));
+        assert_eq!(explorer.marked_count(), 1);
+        assert_eq!(explorer.unmark_file(&files[1].path), Some(file2b));
+        assert_eq!(explorer.marked_count(), 0);
+
+        // Unmark paths that aren't marked
+        assert_eq!(explorer.unmark_file(&files[0].path), None);
+        assert_eq!(explorer.unmark_file(&PathBuf::new()), None);
+        assert_eq!(explorer.marked_count(), 0);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_mark_many() -> Result<()> {
+        let mut explorer = make_explorer()?;
+        explorer.set_mark_condition(|_| true);
+
+        explorer.selected += 1; // Skip ".."
+
+        // Mark first
+        assert_eq!(explorer.toggle_marked_current(), MarkOutcome::Marked);
+        assert_eq!(explorer.marked().len(), 1);
+        let expected_file_1 = explorer.current().clone();
+        explorer.selected += 1;
+
+        // Mark second
+        assert_eq!(explorer.toggle_marked_current(), MarkOutcome::Marked);
+        assert_eq!(explorer.marked().len(), 2);
+        let expected_file_2 = explorer.current().clone();
+
+        let marked = explorer.marked();
+        assert_eq!(marked.len(), 2);
+        assert_eq!(marked[0], &expected_file_1);
+        assert_eq!(marked[1], &expected_file_2);
+
+        // Unmark second
+        assert_eq!(explorer.toggle_marked_current(), MarkOutcome::Unmarked);
+        let new_marked = explorer.marked();
+        assert_eq!(new_marked.len(), 1);
+        assert_eq!(new_marked[0], &expected_file_1);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_mark_many_order() -> Result<()> {
+        let mut explorer = make_explorer()?;
+        explorer.set_mark_condition(|_| true);
+
+        let files = explorer.files().clone();
+
+        explorer.selected = 2;
+        assert_eq!(explorer.toggle_marked_current(), MarkOutcome::Marked);
+        explorer.selected = 1;
+        assert_eq!(explorer.toggle_marked_current(), MarkOutcome::Marked);
+        explorer.selected = 0;
+        assert_eq!(explorer.toggle_marked_current(), MarkOutcome::Marked);
+
+        assert_eq!(explorer.marked(), vec![&files[2], &files[1], &files[0]]);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_iter_unsorted() -> Result<()> {
+        let explorer = make_explorer_with_3_marks()?;
+
+        let mut marked = explorer.marked();
+        assert_eq!(marked.len(), 3);
+
+        let mut marked_unordered: Vec<_> = explorer.iter_marked_unordered().collect();
+        assert_eq!(marked_unordered.len(), 3);
+
+        marked_unordered.sort_by_key(|f| &f.path);
+        marked.sort_by_key(|f| &f.path);
+        assert_eq!(marked, marked_unordered);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_clear_marked() -> Result<()> {
+        let mut explorer = make_explorer_with_3_marks()?;
+
+        assert_eq!(explorer.marked().len(), 3);
+        explorer.unmark_all();
+        assert_eq!(explorer.marked().len(), 0);
+        Ok(())
+    }
+
+    #[test]
+    fn test_mark_files_in_different_dirs() -> Result<()> {
+        let root = build_tmp_file_system()?;
+
+        let mut explorer = FileExplorerBuilder::build_with_working_dir(root.path())?;
+        explorer.set_mark_condition(|_| true);
+
+        // Mark a file in the current directory
+        explorer.selected = explorer.files().len() - 1;
+        assert!(explorer.current().path.ends_with("source.rs"));
+        assert_eq!(explorer.toggle_marked_current(), MarkOutcome::Marked);
+
+        // Navigate to a subdir
+        let dir_path = explorer.files()[1].path.clone();
+        assert!(dir_path.ends_with("Documents"));
+        explorer.set_cwd(&dir_path)?;
+
+        // Mark a file in this subdir.
+        explorer.selected += 1;
+        assert_eq!(explorer.toggle_marked_current(), MarkOutcome::Marked);
+
+        let marked = explorer.marked();
+        assert_eq!(marked.len(), 2);
+        assert!(&marked[0].path.ends_with("source.rs"));
+        assert!(&marked[1].path.ends_with("passport.png"));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_mark_condition_current() -> Result<()> {
+        let mut explorer = make_explorer()?;
+
+        // Can't mark anything with no condition.
+        assert_eq!(explorer.toggle_marked_current(), MarkOutcome::Filtered);
+
+        explorer.set_mark_condition(|file| file.is_file());
+
+        // try to mark '..' (current directory)
+        assert_eq!(explorer.toggle_marked_current(), MarkOutcome::Filtered);
+
+        assert_eq!(explorer.marked().len(), 0);
+
+        explorer.selected += 1;
+        assert_eq!(explorer.toggle_marked_current(), MarkOutcome::Marked);
+        assert_eq!(explorer.marked().len(), 1);
+
+        explorer.set_mark_condition(|_| true);
+        // go back to the '..'directory and mark it
+        explorer.selected = 0;
+        assert_eq!(explorer.toggle_marked_current(), MarkOutcome::Marked);
+        assert_eq!(explorer.marked().len(), 2);
+
+        // Remove mark condition and marks and ensure nothing can be marked again.
+        explorer.remove_mark_condition();
+        explorer.unmark_all();
+        explorer.selected = 0;
+        assert_eq!(explorer.toggle_marked_current(), MarkOutcome::Filtered);
+        explorer.selected = 1;
+        assert_eq!(explorer.toggle_marked_current(), MarkOutcome::Filtered);
 
         Ok(())
     }

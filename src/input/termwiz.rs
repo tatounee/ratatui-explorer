@@ -25,6 +25,7 @@ impl From<&InputEvent> for Input {
                 KeyCode::End => Input::End,
                 KeyCode::PageUp => Input::PageUp,
                 KeyCode::PageDown => Input::PageDown,
+                KeyCode::Char('m') => Input::Mark,
                 _ => Input::None,
             },
             _ => Input::None,

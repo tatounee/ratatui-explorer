@@ -27,11 +27,14 @@ impl WidgetRef for Renderer<'_> {
             self.0.theme().highlight_item_style
         };
 
-        let mut list = List::new(self.0.files().iter().map(|file| file.text(self.0.theme())))
-            .style(self.0.theme().style)
-            .highlight_spacing(self.0.theme().highlight_spacing.clone())
-            .highlight_style(highlight_style)
-            .scroll_padding(self.0.theme().scroll_padding);
+        let mut list = List::new(self.0.files().iter().map(|file| {
+            let marked = self.0.is_marked(&file.path);
+            file.text(self.0.theme(), marked)
+        }))
+        .style(self.0.theme().style)
+        .highlight_spacing(self.0.theme().highlight_spacing.clone())
+        .highlight_style(highlight_style)
+        .scroll_padding(self.0.theme().scroll_padding);
 
         if let Some(symbol) = self.0.theme().highlight_symbol.as_deref() {
             list = list.highlight_symbol(symbol);
@@ -56,11 +59,12 @@ impl WidgetRef for Renderer<'_> {
 
 impl File {
     /// Returns the text with the appropriate style to be displayed for the file.
-    fn text(&self, theme: &Theme) -> Text<'_> {
-        let style = if self.is_dir {
-            *theme.dir_style()
-        } else {
-            *theme.item_style()
+    fn text(&self, theme: &Theme, marked: bool) -> Text<'_> {
+        let style = match (self.is_dir, marked) {
+            (true, false) => *theme.dir_style(),
+            (true, true) => *theme.marked_dir_style(),
+            (false, false) => *theme.item_style(),
+            (false, true) => *theme.marked_item_style(),
         };
         Span::styled(&self.name, style).into()
     }
@@ -83,7 +87,9 @@ pub struct Theme {
     title_bottom: Vec<LineFactory>,
     style: Style,
     item_style: Style,
+    marked_item_style: Style,
     dir_style: Style,
+    marked_dir_style: Style,
     highlight_spacing: HighlightSpacing,
     highlight_item_style: Style,
     highlight_dir_style: Style,
@@ -109,7 +115,9 @@ impl Theme {
             title_bottom: Vec::new(),
             style: Style::new(),
             item_style: Style::new(),
+            marked_item_style: Style::new(),
             dir_style: Style::new(),
+            marked_dir_style: Style::new(),
             highlight_spacing: HighlightSpacing::WhenSelected,
             highlight_item_style: Style::new(),
             highlight_dir_style: Style::new(),
@@ -200,9 +208,9 @@ impl Theme {
         self
     }
 
-    /// Set the style of all non directories items. To set the style of the directories, use [`with_dir_style`](Theme::with_dir_style).
+    /// Set the style of all non-directory items. To set the style of directories, use [`with_dir_style`](Theme::with_dir_style).
     ///
-    /// Behind the scene, it use the [`Span::styled`](https://docs.rs/ratatui/latest/ratatui/text/struct.Span.html#method.styled) method.
+    /// Behind the scene, it uses the [`Span::styled`](https://docs.rs/ratatui/latest/ratatui/text/struct.Span.html#method.styled) method.
     /// See its documentation for more.
     ///
     /// # Example
@@ -218,9 +226,27 @@ impl Theme {
         self
     }
 
-    /// Set the style of all directories items. To set the style of the non directories, use [`with_item_style`](Theme::with_item_style).
+    /// Set the style of all **marked** non-directory items.
     ///
-    /// Behind the scene, it use the [`Span::styled`](https://docs.rs/ratatui/latest/ratatui/text/struct.Span.html#method.styled) method.
+    /// Behind the scene, it uses the [`Span::styled`](https://docs.rs/ratatui/latest/ratatui/text/struct.Span.html#method.styled) method.
+    /// See its documentation for more.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use ratatui::prelude::*;
+    /// # use ratatui_explorer::Theme;
+    /// let theme = Theme::default().with_marked_item_style(Style::default().fg(Color::Yellow));
+    /// ```
+    #[inline]
+    #[must_use = "method moves the value of self and returns the modified value"]
+    pub fn with_marked_item_style<S: Into<Style>>(mut self, marked_item_style: S) -> Self {
+        self.marked_item_style = marked_item_style.into();
+        self
+    }
+
+    /// Set the style of all directory items. To set the style of non-directories, use [`with_item_style`](Theme::with_item_style).
+    ///
+    /// Behind the scene, it uses the [`Span::styled`](https://docs.rs/ratatui/latest/ratatui/text/struct.Span.html#method.styled) method.
     /// See its documentation for more.
     ///
     /// # Example
@@ -233,6 +259,24 @@ impl Theme {
     #[must_use = "method moves the value of self and returns the modified value"]
     pub fn with_dir_style<S: Into<Style>>(mut self, dir_style: S) -> Self {
         self.dir_style = dir_style.into();
+        self
+    }
+
+    /// Set the style of all **marked** directory items.
+    ///
+    /// Behind the scene, it uses the [`Span::styled`](https://docs.rs/ratatui/latest/ratatui/text/struct.Span.html#method.styled) method.
+    /// See its documentation for more.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use ratatui::prelude::*;
+    /// # use ratatui_explorer::Theme;
+    /// let theme = Theme::default().with_marked_dir_style(Style::default().fg(Color::Cyan));
+    /// ```
+    #[inline]
+    #[must_use = "method moves the value of self and returns the modified value"]
+    pub fn with_marked_dir_style<S: Into<Style>>(mut self, marked_dir_style: S) -> Self {
+        self.marked_dir_style = marked_dir_style.into();
         self
     }
 
@@ -410,11 +454,25 @@ impl Theme {
         &self.item_style
     }
 
+    /// Returns the style of the *marked* non directories items of the theme.
+    #[inline]
+    #[must_use]
+    pub const fn marked_item_style(&self) -> &Style {
+        &self.marked_item_style
+    }
+
     /// Returns the style of the directories items of the theme.
     #[inline]
     #[must_use]
     pub const fn dir_style(&self) -> &Style {
         &self.dir_style
+    }
+
+    /// Returns the style of the *marked* directories items of the theme.
+    #[inline]
+    #[must_use]
+    pub const fn marked_dir_style(&self) -> &Style {
+        &self.marked_dir_style
     }
 
     /// Returns the style of the highlighted non directories items of the theme.
@@ -491,10 +549,12 @@ impl Default for Theme {
             title_bottom: Vec::new(),
             style: Style::default(),
             item_style: Style::default().fg(Color::White),
+            marked_item_style: Style::default().fg(Color::Yellow).bold(),
             dir_style: Style::default().fg(Color::LightBlue),
+            marked_dir_style: Style::default().fg(Color::LightCyan).bold(),
             highlight_spacing: HighlightSpacing::Always,
-            highlight_item_style: Style::default().fg(Color::White).bg(Color::DarkGray),
-            highlight_dir_style: Style::default().fg(Color::LightBlue).bg(Color::DarkGray),
+            highlight_item_style: Style::default().bg(Color::DarkGray),
+            highlight_dir_style: Style::default().bg(Color::DarkGray),
             highlight_symbol: None,
             scroll_padding: 0,
         }

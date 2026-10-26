@@ -12,6 +12,6 @@ mod file_explorer;
 mod input;
 mod widget;
 
-pub use file_explorer::{File, FileExplorer, FileExplorerBuilder};
+pub use file_explorer::{File, FileExplorer, FileExplorerBuilder, MarkOutcome};
 pub use input::Input;
 pub use widget::Theme;

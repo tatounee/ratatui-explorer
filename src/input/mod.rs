@@ -22,6 +22,8 @@ pub enum Input {
     PageUp,
     /// Scroll several entries down.
     PageDown,
+    /// Mark/unmark the current file, making it stored in `FileExplorer::marked` and drawn highlighted.
+    Mark,
     /// Go to the parent directory.
     Left,
     /// Go to the child directory (if the selected item is a directory).

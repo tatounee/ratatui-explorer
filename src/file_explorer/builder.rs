@@ -1,6 +1,6 @@
-use std::{io::Result, path::PathBuf, sync::Arc};
+use std::{collections::HashMap, io::Result, path::PathBuf, sync::Arc};
 
-use super::{File, FileExplorer, Filter};
+use super::{File, FileExplorer, Filter, MarkCondition};
 use crate::Theme;
 
 /// Builder for creating a [`FileExplorer`](FileExplorer).
@@ -14,6 +14,8 @@ pub struct FileExplorerBuilder {
     show_hidden: bool,
     #[educe(Debug(ignore), PartialEq(ignore), Hash(ignore))]
     filter: Option<Arc<Filter>>,
+    #[educe(Debug(ignore), PartialEq(ignore), Hash(ignore))]
+    mark_condition: Option<Arc<MarkCondition>>,
     custom_selected: bool,
 }
 
@@ -83,8 +85,8 @@ impl FileExplorerBuilder {
 
     /// Set a filter and map for the `FileExplorer`.
     ///
-    /// If not set, all files are shown. Hidden files are filtered **before** this
-    /// filter will be apply.
+    /// If not set, all files/directories are shown. Hidden files are filtered **before** this
+    /// filter will be applied.
     ///
     /// # Examples
     ///
@@ -99,6 +101,27 @@ impl FileExplorerBuilder {
     /// ```
     pub fn filter_map(mut self, f: impl Fn(File) -> Option<File> + Send + Sync + 'static) -> Self {
         self.filter = Some(Arc::new(f));
+        self
+    }
+
+    /// Set a condition for marking files in the `FileExplorer`.
+    ///
+    /// If not set, **no** files/directories can be marked via input handling. Explicit mark/unmark
+    /// methods will still work.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use ratatui_explorer::FileExplorerBuilder;
+    /// let file_explorer = FileExplorerBuilder::default()
+    ///     .mark_condition(|file| file.is_file())
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// /* Only files can be marked */
+    /// ```
+    pub fn mark_condition(mut self, f: impl Fn(&File) -> bool + Send + Sync + 'static) -> Self {
+        self.mark_condition = Some(Arc::new(f));
         self
     }
 
@@ -133,14 +156,18 @@ impl FileExplorerBuilder {
         let show_hidden = self.show_hidden;
         let theme = self.theme.unwrap_or_else(Theme::new);
         let filter = self.filter;
+        let mark_condition = self.mark_condition;
 
         let mut file_explorer = FileExplorer {
             cwd: PathBuf::new(),
             files: Vec::new(),
             show_hidden,
             selected: 0,
+            marked_counter: 0,
+            marked: HashMap::new(),
             theme,
             filter,
+            mark_condition,
         };
 
         if self.custom_selected {
@@ -174,6 +201,7 @@ impl FileExplorerBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::MarkOutcome;
 
     use std::fs::{self, File};
     use tempfile::TempDir;
@@ -245,5 +273,20 @@ mod tests {
         assert_eq!(*file_explorer.current().path, documents_path);
 
         Ok(())
+    }
+
+    #[test]
+    fn test_mark_filter_passed() {
+        let mut file_explorer = FileExplorerBuilder::default().build().unwrap();
+        assert_eq!(file_explorer.toggle_marked_current(), MarkOutcome::Filtered);
+
+        let mut file_explorer_marking = FileExplorerBuilder::default()
+            .mark_condition(|_f| true)
+            .build()
+            .unwrap();
+        assert_eq!(
+            file_explorer_marking.toggle_marked_current(),
+            MarkOutcome::Marked
+        );
     }
 }
